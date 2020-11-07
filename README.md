@@ -1,10 +1,13 @@
 # sharedb-monaco
 
-Two-way bindings between [`ShareDB`](https://github.com/share/sharedb) and the [`Monaco Editor`](https://github.com/microsoft/monaco-editor)
+[![](https://img.shields.io/npm/v/sharedb-monaco)](https://github.com/Portatolova/sharedb-monaco/blob/master/LICENSE)
+[![](https://img.shields.io/github/license/codecollab-io/sharedb-monaco)](https://github.com/Portatolova/sharedb-monaco/blob/master/LICENSE)
 
-Developed for the [`CodeCollab`](https://codecollab.io) project.
+Two-way bindings between [ShareDB](https://github.com/share/sharedb) and the [Monaco Editor](https://github.com/microsoft/monaco-editor)
 
-Tested and works well with [`monaco-react`](https://github.com/suren-atoyan/monaco-react).
+Developed for the [CodeCollab](https://codecollab.io) project.
+
+Tested and works well with [monaco-react](https://github.com/suren-atoyan/monaco-react).
 
 ## Install
 Using NPM:
@@ -49,4 +52,4 @@ Parameters:
   * `path` Path on ShareDB JSON object to apply operations to. For example, if your ShareDB document is structured as ```{ foo: "", bar: "" }```, set ```path = "foo"``` for ShareDBMonaco to apply operations to ```foo```
 
 ## License
-[`MIT`](https://github.com/codecollab-io/sharedb-monaco/blob/master/LICENSE)
+[MIT](https://github.com/codecollab-io/sharedb-monaco/blob/master/LICENSE)
