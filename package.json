@@ -1,0 +1,31 @@
+{
+  "name": "sharedb-monaco",
+  "version": "1.0.0",
+  "description": "ShareDB Bindings for the Monaco Editor",
+  "main": "dist/index.js",
+  "types" : "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codecollab-io/sharedb-monaco.git"
+  },
+  "author": "Carl Voller",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codecollab-io/sharedb-monaco/issues"
+  },
+  "homepage": "https://github.com/codecollab-io/sharedb-monaco#readme",
+  "devDependencies": {
+    "@types/event-emitter-es6": "^1.1.0",
+    "@types/sharedb": "^1.0.10",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "event-emitter-es6": "^1.1.5",
+    "monaco-editor": "^0.21.2",
+    "reconnecting-websocket": "^4.4.0",
+    "sharedb": "^1.4.2"
+  }
+}

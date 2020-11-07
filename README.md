@@ -1,0 +1,52 @@
+# sharedb-monaco
+
+Two-way bindings between [`ShareDB`](https://github.com/share/sharedb) and the [`Monaco Editor`](https://github.com/microsoft/monaco-editor)
+
+Developed for the [`CodeCollab`](https://codecollab.io) project.
+
+Tested and works well with [`monaco-react`](https://github.com/suren-atoyan/monaco-react).
+
+## Install
+Using NPM:
+```
+$ npm install sharedb-monaco
+```
+
+## Usage
+
+Sample usage of this library in action
+```Javascript
+import ShareDBMonaco from "sharedb-monaco";
+import { editor } from "monaco-editor";
+
+// Get a monaco editor (ICodeEditor) instance
+let editor = editor.create(document.getElementById("editor"), {
+    value: "print('Hello World!')",
+    language: "python"
+});
+
+let binding = new ShareDBMonaco(options);
+
+// Attach editor when document is initialised
+binding.on("ready", () => {
+    binding.add(editor, path);
+});
+
+```
+
+### ShareDBMonaco Options
+  * `opts.id` ID of the ShareDB document
+  * `options.namespace` namespace of document within ShareDB, to be equal to that on the server
+  * `options.wsurl` Websocket URL for ShareDB Server API
+
+### ShareDBMonaco Instance
+#### Events
+  * `ready` Emitted when ShareDB document has initialised and ShareDBMonaco is ready for an editor to be attached.
+
+#### The add() Method
+Parameters:
+  * `editor` An instance of the monaco editor (iCodeEditor).
+  * `path` Path on ShareDB JSON object to apply operations to. For example, if your ShareDB document is structured as ```{ foo: "", bar: "" }```, set ```path = "foo"``` for ShareDBMonaco to apply operations to ```foo```
+
+## License
+[`MIT`](https://github.com/codecollab-io/sharedb-monaco/blob/master/LICENSE)
