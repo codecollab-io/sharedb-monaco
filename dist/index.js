@@ -63,16 +63,26 @@ var ShareDBMonaco = /** @class */ (function (_super) {
             _this.emit("ready");
         });
         _this.doc = doc;
+        _this.connection = connection;
         return _this;
     }
     // Attach editor to ShareDBMonaco
     ShareDBMonaco.prototype.add = function (monaco, path) {
+        if (this.connection.state === "disconnected") {
+            throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
+        }
         var sharePath = path || "";
         this.bindings = new bindings_1.default({
             monaco: monaco,
             path: sharePath,
             doc: this.doc
         });
+    };
+    ShareDBMonaco.prototype.close = function () {
+        if (this.bindings) {
+            this.bindings.unlisten();
+        }
+        this.connection.close();
     };
     return ShareDBMonaco;
 }(event_emitter_es6_1.default));

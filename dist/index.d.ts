@@ -15,6 +15,7 @@ import Bindings from "./bindings";
 declare class ShareDBMonaco extends EventEmitter {
     WS: WebSocket;
     doc: sharedb.Doc;
+    private connection;
     bindings?: Bindings;
     /**
      * ShareDBMonaco
@@ -25,6 +26,6 @@ declare class ShareDBMonaco extends EventEmitter {
      */
     constructor(opts: ShareDBMonacoOptions);
     add(monaco: editor.ICodeEditor, path: string): void;
-    on(event: 'ready', callback: () => void): this;
+    close(): void;
 }
 export default ShareDBMonaco;

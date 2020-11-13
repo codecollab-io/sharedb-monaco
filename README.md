@@ -46,10 +46,16 @@ binding.on("ready", () => {
 #### Events
   * `ready` Emitted when ShareDB document has initialised and ShareDBMonaco is ready for an editor to be attached.
 
-#### The add() Method
+#### Methods
+`add(editor, path)`:
+Attaches an editor to the ShareDBMonaco instance
+
 Parameters:
   * `editor` An instance of the monaco editor (iCodeEditor).
   * `path` Path on ShareDB JSON object to apply operations to. For example, if your ShareDB document is structured as ```{ foo: "", bar: "" }```, set ```path = "foo"``` for ShareDBMonaco to apply operations to ```foo```
+
+`close()`: Closes the ShareDB and WebSocket connections between the server and this ShareDBMonaco instance. Also detaches any listeners on the editor.
+
 
 ## License
 [MIT](https://github.com/codecollab-io/sharedb-monaco/blob/master/LICENSE)

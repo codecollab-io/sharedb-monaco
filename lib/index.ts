@@ -18,6 +18,7 @@ class ShareDBMonaco extends EventEmitter {
 
     WS: WebSocket;
     doc: sharedb.Doc;
+    private connection: any;
     bindings?: Bindings;
 
     /**
@@ -53,16 +54,27 @@ class ShareDBMonaco extends EventEmitter {
         });
 
         this.doc = doc;
+        this.connection = connection;
     }
 
     // Attach editor to ShareDBMonaco
     add(monaco: editor.ICodeEditor, path: string) {
+
+        if(this.connection.state === "disconnected") { 
+            throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
+        }
+
         let sharePath = path || "";
         this.bindings = new Bindings({
             monaco: monaco,
             path: sharePath,
             doc: this.doc
         });
+    }
+
+    close() {
+        if(this.bindings) { this.bindings.unlisten(); }
+        this.connection.close();
     }
 }
 

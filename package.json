@@ -1,9 +1,9 @@
 {
   "name": "sharedb-monaco",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "ShareDB Bindings for the Monaco Editor",
   "main": "dist/index.js",
-  "types" : "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc"
   },
