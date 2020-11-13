@@ -14,6 +14,10 @@ import { editor } from "monaco-editor";
 import { ShareDBMonacoOptions } from "./types";
 import Bindings from "./bindings";
 
+declare interface ShareDBMonaco {
+    on(event: 'ready', listener: () => void): this;
+}
+
 class ShareDBMonaco extends EventEmitter {
 
     WS: WebSocket;
