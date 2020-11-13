@@ -16,6 +16,7 @@ import Bindings from "./bindings";
 
 declare interface ShareDBMonaco {
     on(event: 'ready', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
 }
 
 class ShareDBMonaco extends EventEmitter {
@@ -79,6 +80,7 @@ class ShareDBMonaco extends EventEmitter {
     close() {
         if(this.bindings) { this.bindings.unlisten(); }
         this.connection.close();
+        this.emit("close");
     }
 }
 

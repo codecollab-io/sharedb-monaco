@@ -14,6 +14,7 @@ import { ShareDBMonacoOptions } from "./types";
 import Bindings from "./bindings";
 declare interface ShareDBMonaco {
     on(event: 'ready', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
 }
 declare class ShareDBMonaco extends EventEmitter {
     WS: WebSocket;

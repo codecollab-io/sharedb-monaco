@@ -45,6 +45,7 @@ binding.on("ready", () => {
 ### ShareDBMonaco Instance
 #### Events
   * `ready` Emitted when ShareDB document has initialised and ShareDBMonaco is ready for an editor to be attached.
+  * `close` Emitted when the `close()` method is called.
 
 #### Methods
 `add(editor, path)`:

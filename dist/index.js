@@ -83,6 +83,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
             this.bindings.unlisten();
         }
         this.connection.close();
+        this.emit("close");
     };
     return ShareDBMonaco;
 }(event_emitter_es6_1.default));
