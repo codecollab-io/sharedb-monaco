@@ -5,8 +5,8 @@
  * @license MIT
  */
 
-import * as monaco from "monaco-editor";
 import { editor } from "monaco-editor";
+import { Range } from "./Range";
 import sharedb from "sharedb/lib/client";
 import { BindingsOptions } from "./types";
 
@@ -132,7 +132,7 @@ class Bindings {
             if("sd" in op) {
                 const end = model.getPositionAt(index + op.sd.length);
                 edits.push({
-                    range: new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column),
+                    range: new Range(start.lineNumber, start.column, end.lineNumber, end.column),
                     text: "",
                     forceMoveMarkers: true
                 });
@@ -140,7 +140,7 @@ class Bindings {
 
             if("si" in op) {
                 edits.push({
-                    range: new monaco.Range(start.lineNumber, start.column, start.lineNumber, start.column),
+                    range: new Range(start.lineNumber, start.column, start.lineNumber, start.column),
                     text: op.si,
                     forceMoveMarkers: true
                 });
