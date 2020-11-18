@@ -111,6 +111,7 @@ var Bindings = /** @class */ (function () {
     };
     // Handles local editor change events
     Bindings.prototype.onLocalChange = function (delta) {
+        var _this = this;
         if (this.suppress) {
             return;
         }
@@ -119,6 +120,15 @@ var Bindings = /** @class */ (function () {
         this.doc.submitOp(op, { source: true }, function (err) {
             if (err)
                 throw err;
+            if (_this.model.getValue() !== _this.doc.data[_this.path]) {
+                _this.suppress = true;
+                var cursor = _this.editor.getPosition();
+                _this.model.setValue(_this.doc.data[_this.path]);
+                if (cursor) {
+                    _this.editor.setPosition(cursor);
+                }
+                _this.suppress = false;
+            }
         });
     };
     // Handles remote operations from ShareDB

@@ -161,6 +161,13 @@ class Bindings {
 
         this.doc.submitOp(op, { source: true }, (err) => {
             if(err) throw err;
+            if(this.model.getValue() !== this.doc.data[this.path]) {
+                this.suppress = true;
+                let cursor = this.editor.getPosition();
+                this.model.setValue(this.doc.data[this.path]);
+                if(cursor) { this.editor.setPosition(cursor); }
+                this.suppress = false;
+            }
         });
     }
 
