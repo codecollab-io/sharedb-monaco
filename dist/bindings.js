@@ -40,7 +40,6 @@ var Bindings = /** @class */ (function () {
     // Transform monaco content change delta to ShareDB Operation.
     Bindings.prototype.deltaTransform = function (delta) {
         var rangeOffset = delta.rangeOffset, rangeLength = delta.rangeLength, text = delta.text;
-        console.log(delta);
         var op;
         if (text.length > 0 && rangeLength === 0) {
             op = this.getInsertOp(rangeOffset, text);
@@ -61,7 +60,7 @@ var Bindings = /** @class */ (function () {
         var p = [this.path, index], a = "si", s = text;
         var op = { p: p };
         op[a] = s;
-        return op;
+        return [op];
     };
     // Converts delete operation into json0 (sharedb-op)
     Bindings.prototype.getDeleteOp = function (index, length) {
@@ -69,7 +68,7 @@ var Bindings = /** @class */ (function () {
         var p = [this.path, index], a = "sd", s = text;
         var op = { p: p };
         op[a] = s;
-        return op;
+        return [op];
     };
     // Converts replace operation into json0 (sharedb-op)
     Bindings.prototype.getReplaceOp = function (index, length, text) {
@@ -115,9 +114,12 @@ var Bindings = /** @class */ (function () {
         if (this.suppress) {
             return;
         }
-        var op = this.deltaTransform(delta.changes[0]);
+        var ops = [];
+        for (var i = 0; i < delta.changes.length; i++) {
+            ops = ops.concat(this.deltaTransform(delta.changes[i]));
+        }
         this.lastValue = this.model.getValue();
-        this.doc.submitOp(op, { source: true }, function (err) {
+        this.doc.submitOp(ops, { source: true }, function (err) {
             if (err)
                 throw err;
             if (_this.model.getValue() !== _this.doc.data[_this.path]) {

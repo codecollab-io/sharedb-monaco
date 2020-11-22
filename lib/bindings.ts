@@ -57,8 +57,8 @@ class Bindings {
     // Transform monaco content change delta to ShareDB Operation.
     deltaTransform(delta: editor.IModelContentChange) {
         const { rangeOffset, rangeLength, text } = delta;
-        console.log(delta);
-        let op: any | Array<any>;
+        
+        let op: Array<any>;
         if (text.length > 0 && rangeLength === 0) {
             op = this.getInsertOp(rangeOffset, text);
         } else if (text.length > 0 && rangeLength > 0) {
@@ -80,7 +80,7 @@ class Bindings {
         
         let op: any = { p: p };
         op[a] = s;
-        return op;
+        return [op];
     }
 
     // Converts delete operation into json0 (sharedb-op)
@@ -94,7 +94,7 @@ class Bindings {
         
         let op: any = { p: p };
         op[a] = s;
-        return op;
+        return [op];
     }
 
     // Converts replace operation into json0 (sharedb-op)
@@ -155,11 +155,14 @@ class Bindings {
     onLocalChange(delta: editor.IModelContentChangedEvent) {
         if(this.suppress) { return; }
 
-        const op = this.deltaTransform(delta.changes[0]);
+        let ops: Array<any> = [];
+        for(let i = 0; i < delta.changes.length; i++) {
+            ops = ops.concat(this.deltaTransform(delta.changes[i]));
+        }
 
         this.lastValue = this.model.getValue();
 
-        this.doc.submitOp(op, { source: true }, (err) => {
+        this.doc.submitOp(ops, { source: true }, (err) => {
             if(err) throw err;
             if(this.model.getValue() !== this.doc.data[this.path]) {
                 this.suppress = true;

@@ -17,9 +17,9 @@ declare class Bindings {
     setInitialValue(): void;
     listen(): void;
     unlisten(): void;
-    deltaTransform(delta: editor.IModelContentChange): any;
-    getInsertOp(index: number, text: string): any;
-    getDeleteOp(index: number, length: number): any;
+    deltaTransform(delta: editor.IModelContentChange): any[];
+    getInsertOp(index: number, text: string): any[];
+    getDeleteOp(index: number, length: number): any[];
     getReplaceOp(index: number, length: number, text: string): any[];
     opTransform(ops: Array<any>): void;
     onLocalChange(delta: editor.IModelContentChangedEvent): void;
