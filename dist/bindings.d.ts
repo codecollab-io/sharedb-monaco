@@ -13,6 +13,7 @@ declare class Bindings {
     private doc;
     private model;
     private lastValue;
+    private viewOnly;
     constructor(options: BindingsOptions);
     setInitialValue(): void;
     listen(): void;

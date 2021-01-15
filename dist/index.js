@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -67,7 +67,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         return _this;
     }
     // Attach editor to ShareDBMonaco
-    ShareDBMonaco.prototype.add = function (monaco, path) {
+    ShareDBMonaco.prototype.add = function (monaco, path, viewOnly) {
         if (this.connection.state === "disconnected") {
             throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
         }
@@ -75,7 +75,8 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         this.bindings = new bindings_1.default({
             monaco: monaco,
             path: sharePath,
-            doc: this.doc
+            doc: this.doc,
+            viewOnly: !!viewOnly
         });
     };
     ShareDBMonaco.prototype.close = function () {

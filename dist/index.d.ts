@@ -29,7 +29,7 @@ declare class ShareDBMonaco extends EventEmitter {
      * @param {string} opts.wsurl - URL for ShareDB Server API
      */
     constructor(opts: ShareDBMonacoOptions);
-    add(monaco: editor.ICodeEditor, path: string): void;
+    add(monaco: editor.ICodeEditor, path: string, viewOnly?: boolean): void;
     close(): void;
 }
 export default ShareDBMonaco;

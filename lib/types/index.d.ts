@@ -16,4 +16,5 @@ export interface BindingsOptions {
     monaco: editor.ICodeEditor;
     path: string;
     doc: sharedb.Doc;
+    viewOnly: boolean;
 }

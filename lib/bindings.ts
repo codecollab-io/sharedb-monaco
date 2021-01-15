@@ -17,6 +17,7 @@ class Bindings {
     private doc: sharedb.Doc;
     private model: editor.ITextModel;
     private lastValue: string;
+    private viewOnly: boolean;
 
     constructor(options: BindingsOptions) {
         this.suppress = false;
@@ -25,6 +26,7 @@ class Bindings {
         this.doc = options.doc;
         this.model = (this.editor.getModel() as editor.ITextModel);
         this.lastValue = this.model.getValue();
+        this.viewOnly = options.viewOnly;
 
         this.setInitialValue();
 
@@ -44,13 +46,13 @@ class Bindings {
 
     // Listen for both monaco editor changes and ShareDB changes
     listen() {
-        this.editor.onDidChangeModelContent(this.onLocalChange);
+        if(!this.viewOnly) { this.editor.onDidChangeModelContent(this.onLocalChange); }
         this.doc.on('op', this.onRemoteChange);
     }
 
     // Stop listening for changes
     unlisten() {
-        this.editor.onDidChangeModelContent(() => {});
+        if(!this.viewOnly) { this.editor.onDidChangeModelContent(() => {}); }
         this.doc.on('op', this.onRemoteChange);
     }
 
@@ -146,7 +148,9 @@ class Bindings {
                 });
             }
 
+            if(this.viewOnly) { this.editor.updateOptions({ readOnly: false }); }
             this.editor.executeEdits("remote", edits);
+            if(this.viewOnly) { this.editor.updateOptions({ readOnly: true }); }
         }
         this.suppress = false;
     }
@@ -177,6 +181,7 @@ class Bindings {
     // Handles remote operations from ShareDB
     onRemoteChange(ops: Array<any>, source: any) {
         if(ops.length === 0) { return; }
+
         const opsPath = ops[0].p.slice(0, ops[0].p.length - 1).toString();
         if(source === true || opsPath !== this.path) {
             return;

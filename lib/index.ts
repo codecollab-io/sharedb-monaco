@@ -63,7 +63,7 @@ class ShareDBMonaco extends EventEmitter {
     }
 
     // Attach editor to ShareDBMonaco
-    add(monaco: editor.ICodeEditor, path: string) {
+    add(monaco: editor.ICodeEditor, path: string, viewOnly?: boolean) {
 
         if(this.connection.state === "disconnected") { 
             throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
@@ -73,7 +73,8 @@ class ShareDBMonaco extends EventEmitter {
         this.bindings = new Bindings({
             monaco: monaco,
             path: sharePath,
-            doc: this.doc
+            doc: this.doc,
+            viewOnly: !!viewOnly
         });
     }
 

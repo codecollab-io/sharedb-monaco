@@ -15,6 +15,7 @@ var Bindings = /** @class */ (function () {
         this.doc = options.doc;
         this.model = this.editor.getModel();
         this.lastValue = this.model.getValue();
+        this.viewOnly = options.viewOnly;
         this.setInitialValue();
         this.onLocalChange = this.onLocalChange.bind(this);
         this.onRemoteChange = this.onRemoteChange.bind(this);
@@ -29,12 +30,16 @@ var Bindings = /** @class */ (function () {
     };
     // Listen for both monaco editor changes and ShareDB changes
     Bindings.prototype.listen = function () {
-        this.editor.onDidChangeModelContent(this.onLocalChange);
+        if (!this.viewOnly) {
+            this.editor.onDidChangeModelContent(this.onLocalChange);
+        }
         this.doc.on('op', this.onRemoteChange);
     };
     // Stop listening for changes
     Bindings.prototype.unlisten = function () {
-        this.editor.onDidChangeModelContent(function () { });
+        if (!this.viewOnly) {
+            this.editor.onDidChangeModelContent(function () { });
+        }
         this.doc.on('op', this.onRemoteChange);
     };
     // Transform monaco content change delta to ShareDB Operation.
@@ -104,7 +109,13 @@ var Bindings = /** @class */ (function () {
                     forceMoveMarkers: true
                 });
             }
+            if (this.viewOnly) {
+                this.editor.updateOptions({ readOnly: false });
+            }
             this.editor.executeEdits("remote", edits);
+            if (this.viewOnly) {
+                this.editor.updateOptions({ readOnly: true });
+            }
         }
         this.suppress = false;
     };

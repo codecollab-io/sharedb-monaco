@@ -66,5 +66,5 @@ export declare class Position {
     /**
      * Test if `obj` is an `IPosition`.
      */
-    static isIPosition(obj: any): boolean;
+    static isIPosition(obj: any): any;
 }

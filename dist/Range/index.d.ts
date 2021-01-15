@@ -107,7 +107,7 @@ export declare class Range {
     /**
      * Test if `obj` is an `IRange`.
      */
-    static isIRange(obj: any): boolean;
+    static isIRange(obj: any): any;
     /**
      * Test if the two ranges are touching in any way.
      */
