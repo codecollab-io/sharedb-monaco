@@ -32,6 +32,7 @@ class ShareDBMonaco extends EventEmitter {
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.wsurl - URL for ShareDB Server API
+     * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions) {
         super();
@@ -44,7 +45,7 @@ class ShareDBMonaco extends EventEmitter {
         this.WS = new WebSocket(opts.wsurl);
         
         // Get ShareDB Doc
-        const connection = new sharedb.Connection(this.WS as any);
+        const connection = opts.connection || new sharedb.Connection(this.WS as any);
         const doc = connection.get(opts.namespace, opts.id);
 
         doc.subscribe((err: any) => {

@@ -10,6 +10,7 @@ export interface ShareDBMonacoOptions {
     id: string;
     namespace: string;
     wsurl: string;
+    connection?: sharedb.Connection
 }
 
 export interface BindingsOptions {

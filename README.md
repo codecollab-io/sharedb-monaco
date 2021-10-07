@@ -41,6 +41,7 @@ binding.on("ready", () => {
   * `opts.id` ID of the ShareDB document
   * `options.namespace` namespace of document within ShareDB, to be equal to that on the server
   * `options.wsurl` Websocket URL for ShareDB Server API
+  * `options.connection` (Optional) ShareDB Connection object. Pass this to reuse an existing Connection.
 
 ### ShareDBMonaco Instance
 #### Events
