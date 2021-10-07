@@ -15,6 +15,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -36,6 +38,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.wsurl - URL for ShareDB Server API
+     * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     function ShareDBMonaco(opts) {
         var _this = _super.call(this) || this;
@@ -51,7 +54,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         }
         _this.WS = new reconnecting_websocket_1.default(opts.wsurl);
         // Get ShareDB Doc
-        var connection = new client_1.default.Connection(_this.WS);
+        var connection = opts.connection || new client_1.default.Connection(_this.WS);
         var doc = connection.get(opts.namespace, opts.id);
         doc.subscribe(function (err) {
             if (err)

@@ -27,6 +27,7 @@ declare class ShareDBMonaco extends EventEmitter {
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.wsurl - URL for ShareDB Server API
+     * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions);
     add(monaco: editor.ICodeEditor, path: string, viewOnly?: boolean): void;
