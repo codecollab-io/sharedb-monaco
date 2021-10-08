@@ -86,9 +86,11 @@ class ShareDBMonaco extends EventEmitter {
 
     close() {
         if(this.bindings) { this.bindings.unlisten(); }
-        this.connection.close();
         this.emit("close");
-        this.WS?.close();
+        if (this.WS) {
+            this.WS?.close();
+            this.connection.close();
+        }
     }
 }
 

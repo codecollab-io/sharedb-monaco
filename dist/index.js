@@ -90,9 +90,11 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         if (this.bindings) {
             this.bindings.unlisten();
         }
-        this.connection.close();
         this.emit("close");
-        (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
+        if (this.WS) {
+            (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
+            this.connection.close();
+        }
     };
     return ShareDBMonaco;
 }(event_emitter_es6_1.default));
