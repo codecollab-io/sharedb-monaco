@@ -6,11 +6,14 @@
 import { editor } from "monaco-editor";
 import sharedb from "sharedb/lib/client";
 
-export interface ShareDBMonacoOptions {
+export type ShareDBMonacoOptions = {
     id: string;
     namespace: string;
     wsurl: string;
-    connection?: sharedb.Connection
+} | {
+    id: string;
+    namespace: string;
+    connection: sharedb.Connection;
 }
 
 export interface BindingsOptions {

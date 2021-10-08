@@ -21,7 +21,7 @@ declare interface ShareDBMonaco {
 
 class ShareDBMonaco extends EventEmitter {
 
-    WS: WebSocket;
+    WS?: WebSocket;
     doc: sharedb.Doc;
     private connection: any;
     bindings?: Bindings;
@@ -31,7 +31,7 @@ class ShareDBMonaco extends EventEmitter {
      * @param {ShareDBMonacoOptions} opts - Options object
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
-     * @param {string} opts.wsurl - URL for ShareDB Server API
+     * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions) {
@@ -40,12 +40,17 @@ class ShareDBMonaco extends EventEmitter {
         // Parameter checks
         if(!opts.id) { throw new Error("'id' is required but not provided"); }
         if(!opts.namespace) { throw new Error("'namespace' is required but not provided"); }
-        if(!opts.wsurl) { throw new Error("'wsurl' is required but not provided"); }
 
-        this.WS = new WebSocket(opts.wsurl);
+        let connection: sharedb.Connection;
+
+        if ("wsurl" in opts) {
+            this.WS = new WebSocket(opts.wsurl);
+            connection = new sharedb.Connection(this.WS as any);
+        } else {
+            connection = opts.connection;
+        }
         
         // Get ShareDB Doc
-        const connection = opts.connection || new sharedb.Connection(this.WS as any);
         const doc = connection.get(opts.namespace, opts.id);
 
         doc.subscribe((err: any) => {
@@ -83,6 +88,7 @@ class ShareDBMonaco extends EventEmitter {
         if(this.bindings) { this.bindings.unlisten(); }
         this.connection.close();
         this.emit("close");
+        this.WS?.close();
     }
 }
 

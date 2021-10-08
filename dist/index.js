@@ -37,7 +37,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
      * @param {ShareDBMonacoOptions} opts - Options object
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
-     * @param {string} opts.wsurl - URL for ShareDB Server API
+     * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     function ShareDBMonaco(opts) {
@@ -49,12 +49,15 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         if (!opts.namespace) {
             throw new Error("'namespace' is required but not provided");
         }
-        if (!opts.wsurl) {
-            throw new Error("'wsurl' is required but not provided");
+        var connection;
+        if ("wsurl" in opts) {
+            _this.WS = new reconnecting_websocket_1.default(opts.wsurl);
+            connection = new client_1.default.Connection(_this.WS);
         }
-        _this.WS = new reconnecting_websocket_1.default(opts.wsurl);
+        else {
+            connection = opts.connection;
+        }
         // Get ShareDB Doc
-        var connection = opts.connection || new client_1.default.Connection(_this.WS);
         var doc = connection.get(opts.namespace, opts.id);
         doc.subscribe(function (err) {
             if (err)
@@ -83,11 +86,13 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         });
     };
     ShareDBMonaco.prototype.close = function () {
+        var _a;
         if (this.bindings) {
             this.bindings.unlisten();
         }
         this.connection.close();
         this.emit("close");
+        (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
     };
     return ShareDBMonaco;
 }(event_emitter_es6_1.default));
