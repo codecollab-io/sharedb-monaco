@@ -93,7 +93,7 @@ class ShareDBMonaco extends EventEmitter {
     pause() {
         console.log("PAUSING", this.id);
         this.bindings.forEach((binding) => binding.pause());
-        this.doc.destroy();
+        this.doc.unsubscribe(() => this.doc.destroy());
     }
 
     // Resume doc subscriptions
