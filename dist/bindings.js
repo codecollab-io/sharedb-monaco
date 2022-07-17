@@ -31,27 +31,29 @@ var Bindings = /** @class */ (function () {
     };
     // Listen for both monaco editor changes and ShareDB changes
     Bindings.prototype.listen = function () {
+        console.log("LISTEN");
         if (!this.viewOnly)
             this.model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
     };
     // Stop listening for changes
     Bindings.prototype.unlisten = function () {
+        console.log("UNLISTEN");
         if (!this.viewOnly)
             this.model.onDidChangeContent(function () { });
         this.doc.on('op', this.onRemoteChange);
     };
     // Pause connections
     Bindings.prototype.pause = function () {
+        console.log("PAUSE", this.doc.id);
         this.unlisten();
-        this.lastValue = this.model.getValue();
     };
     // Resume connections
     Bindings.prototype.resume = function (doc) {
         this.doc = doc;
         this.listen();
-        if (this.doc.data[this.path] !== this.lastValue)
-            this.model.setValue(this.doc.data[this.path]);
+        console.log("RESUME", this.doc.id);
+        this.model.setValue(this.doc.data[this.path]);
     };
     // Transform monaco content change delta to ShareDB Operation.
     Bindings.prototype.deltaTransform = function (delta) {
@@ -140,6 +142,7 @@ var Bindings = /** @class */ (function () {
     // Handles local editor change events
     Bindings.prototype.onLocalChange = function (delta) {
         var _this = this;
+        console.log("ONLOCALCHANGE", this.suppress);
         if (this.suppress) {
             return;
         }

@@ -48,27 +48,30 @@ class Bindings {
 
     // Listen for both monaco editor changes and ShareDB changes
     listen() {
+        console.log("LISTEN")
         if(!this.viewOnly) this.model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
     }
 
     // Stop listening for changes
     unlisten() {
+        console.log("UNLISTEN");
         if(!this.viewOnly) this.model.onDidChangeContent(() => {});
         this.doc.on('op', this.onRemoteChange);
     }
 
     // Pause connections
     pause() {
+        console.log("PAUSE", this.doc.id);
         this.unlisten();
-        this.lastValue = this.model.getValue();
     }
 
     // Resume connections
     resume(doc: sharedb.Doc) {
         this.doc = doc;
         this.listen();
-        if(this.doc.data[this.path] !== this.lastValue) this.model.setValue(this.doc.data[this.path]);
+        console.log("RESUME", this.doc.id);
+        this.model.setValue(this.doc.data[this.path]);
     }
 
     // Transform monaco content change delta to ShareDB Operation.
@@ -185,6 +188,7 @@ class Bindings {
 
     // Handles local editor change events
     onLocalChange(delta: editor.IModelContentChangedEvent) {
+        console.log("ONLOCALCHANGE", this.suppress);
         if(this.suppress) { return; }
 
         let ops: Array<any> = [];
