@@ -19,8 +19,10 @@ declare interface ShareDBMonaco {
 declare class ShareDBMonaco extends EventEmitter {
     WS?: WebSocket;
     doc: sharedb.Doc;
+    bindings: Map<string, Bindings>;
     private connection;
-    bindings?: Bindings;
+    private namespace;
+    private id;
     /**
      * ShareDBMonaco
      * @param {ShareDBMonacoOptions} opts - Options object
@@ -30,7 +32,10 @@ declare class ShareDBMonaco extends EventEmitter {
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions);
-    add(model: editor.ITextModel, path: string, viewOnly?: boolean): void;
+    add(model: editor.ITextModel, path: string, viewOnly?: boolean): Bindings | undefined;
+    pause(): void;
+    resume(): void;
+    remove(id: string): void;
     close(): void;
 }
 export default ShareDBMonaco;

@@ -5,6 +5,7 @@
  * @license MIT
  */
 import { editor } from "monaco-editor";
+import sharedb from "sharedb/lib/client";
 import { BindingsOptions } from "./types";
 declare class Bindings {
     private suppress;
@@ -17,6 +18,8 @@ declare class Bindings {
     setInitialValue(): void;
     listen(): void;
     unlisten(): void;
+    pause(): void;
+    resume(doc: sharedb.Doc): void;
     deltaTransform(delta: editor.IModelContentChange): any[];
     getInsertOp(index: number, text: string): any[];
     getDeleteOp(index: number, length: number): any[];

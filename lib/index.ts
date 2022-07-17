@@ -24,8 +24,11 @@ class ShareDBMonaco extends EventEmitter {
 
     WS?: WebSocket;
     doc: sharedb.Doc;
+    bindings: Map<string, Bindings> = new Map();
+    
     private connection: sharedb.Connection;
-    bindings?: Bindings;
+    private namespace: string;
+    private id: string;
 
     /**
      * ShareDBMonaco
@@ -67,10 +70,12 @@ class ShareDBMonaco extends EventEmitter {
 
         this.doc = doc;
         this.connection = connection;
+        this.namespace = opts.namespace;
+        this.id = opts.id;
     }
 
-    // Attach editor to ShareDBMonaco
-    add(model: editor.ITextModel, path: string, viewOnly?: boolean) {
+    // Attach model to ShareDBMonaco
+    add(model: editor.ITextModel, path: string, viewOnly: boolean = false) {
 
         const { doc } = this;
 
@@ -78,22 +83,45 @@ class ShareDBMonaco extends EventEmitter {
             throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
         }
 
-        this.bindings = new Bindings({
-            // monaco,
-            model,
-            path: path || "",
-            doc,
-            viewOnly: !!viewOnly
-        });
+        if (this.bindings.has(model.id)) return this.bindings.get(model.id);
+
+        this.bindings.set(model.id, new Bindings({ model, path, doc, viewOnly }));
+
+    }
+
+    // Pause doc subscriptions
+    pause() {
+        this.bindings.forEach((binding) => binding.pause());
+        this.doc.destroy();
+    }
+
+    // Resume doc subscriptions
+    resume() {
+
+        const { connection, namespace, id, bindings } = this;
+
+        this.doc = connection.get(namespace, id);
+        bindings.forEach((binding) => binding.resume(this.doc));
+
+    }
+
+    // Detach model from ShareDBMonaco
+    remove(id: string) {
+        if (this.bindings.has(id)) this.bindings.delete(id);
     }
 
     close() {
-        if(this.bindings) { this.bindings.unlisten(); }
+
+        this.doc.destroy();
+        this.bindings.forEach((binding) => binding.unlisten());
         this.emit("close");
+
+        // If connection was opened by this instance, close it.
         if (this.WS) {
             this.WS?.close();
             this.connection.close();
         }
+
     }
 }
 

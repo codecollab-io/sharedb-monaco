@@ -41,6 +41,18 @@ var Bindings = /** @class */ (function () {
             this.model.onDidChangeContent(function () { });
         this.doc.on('op', this.onRemoteChange);
     };
+    // Pause connections
+    Bindings.prototype.pause = function () {
+        this.unlisten();
+        this.lastValue = this.model.getValue();
+    };
+    // Resume connections
+    Bindings.prototype.resume = function (doc) {
+        this.doc = doc;
+        this.listen();
+        if (this.doc.data[this.path] !== this.lastValue)
+            this.model.setValue(this.doc.data[this.path]);
+    };
     // Transform monaco content change delta to ShareDB Operation.
     Bindings.prototype.deltaTransform = function (delta) {
         var rangeOffset = delta.rangeOffset, rangeLength = delta.rangeLength, text = delta.text;

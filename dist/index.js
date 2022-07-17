@@ -42,6 +42,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
      */
     function ShareDBMonaco(opts) {
         var _this = _super.call(this) || this;
+        _this.bindings = new Map();
         // Parameter checks
         if (!opts.id) {
             throw new Error("'id' is required but not provided");
@@ -70,28 +71,44 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         });
         _this.doc = doc;
         _this.connection = connection;
+        _this.namespace = opts.namespace;
+        _this.id = opts.id;
         return _this;
     }
-    // Attach editor to ShareDBMonaco
+    // Attach model to ShareDBMonaco
     ShareDBMonaco.prototype.add = function (model, path, viewOnly) {
+        if (viewOnly === void 0) { viewOnly = false; }
         var doc = this.doc;
         if (this.connection.state === "disconnected") {
             throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
         }
-        this.bindings = new bindings_1.default({
-            // monaco,
-            model: model,
-            path: path || "",
-            doc: doc,
-            viewOnly: !!viewOnly
-        });
+        if (this.bindings.has(model.id))
+            return this.bindings.get(model.id);
+        this.bindings.set(model.id, new bindings_1.default({ model: model, path: path, doc: doc, viewOnly: viewOnly }));
+    };
+    // Pause doc subscriptions
+    ShareDBMonaco.prototype.pause = function () {
+        this.bindings.forEach(function (binding) { return binding.pause(); });
+        this.doc.destroy();
+    };
+    // Resume doc subscriptions
+    ShareDBMonaco.prototype.resume = function () {
+        var _this = this;
+        var _a = this, connection = _a.connection, namespace = _a.namespace, id = _a.id, bindings = _a.bindings;
+        this.doc = connection.get(namespace, id);
+        bindings.forEach(function (binding) { return binding.resume(_this.doc); });
+    };
+    // Detach model from ShareDBMonaco
+    ShareDBMonaco.prototype.remove = function (id) {
+        if (this.bindings.has(id))
+            this.bindings.delete(id);
     };
     ShareDBMonaco.prototype.close = function () {
         var _a;
-        if (this.bindings) {
-            this.bindings.unlisten();
-        }
+        this.doc.destroy();
+        this.bindings.forEach(function (binding) { return binding.unlisten(); });
         this.emit("close");
+        // If connection was opened by this instance, close it.
         if (this.WS) {
             (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
             this.connection.close();

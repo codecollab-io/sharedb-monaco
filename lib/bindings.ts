@@ -58,6 +58,19 @@ class Bindings {
         this.doc.on('op', this.onRemoteChange);
     }
 
+    // Pause connections
+    pause() {
+        this.unlisten();
+        this.lastValue = this.model.getValue();
+    }
+
+    // Resume connections
+    resume(doc: sharedb.Doc) {
+        this.doc = doc;
+        this.listen();
+        if(this.doc.data[this.path] !== this.lastValue) this.model.setValue(this.doc.data[this.path]);
+    }
+
     // Transform monaco content change delta to ShareDB Operation.
     deltaTransform(delta: editor.IModelContentChange) {
         const { rangeOffset, rangeLength, text } = delta;
