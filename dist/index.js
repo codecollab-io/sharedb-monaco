@@ -88,6 +88,7 @@ var ShareDBMonaco = /** @class */ (function (_super) {
     };
     // Pause doc subscriptions
     ShareDBMonaco.prototype.pause = function () {
+        console.log("PAUSING", this.id);
         this.bindings.forEach(function (binding) { return binding.pause(); });
         this.doc.destroy();
     };
