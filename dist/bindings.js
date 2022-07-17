@@ -10,12 +10,13 @@ var Range_1 = require("./Range");
 var Bindings = /** @class */ (function () {
     function Bindings(options) {
         this.suppress = false;
-        this.editor = options.monaco;
-        this.path = options.path;
-        this.doc = options.doc;
-        this.model = this.editor.getModel();
-        this.lastValue = this.model.getValue();
-        this.viewOnly = options.viewOnly;
+        // this.editor = options.monaco;
+        var path = options.path, doc = options.doc, model = options.model, viewOnly = options.viewOnly;
+        this.path = path;
+        this.doc = doc;
+        this.model = model;
+        this.lastValue = model.getValue();
+        this.viewOnly = viewOnly;
         this.setInitialValue();
         this.onLocalChange = this.onLocalChange.bind(this);
         this.onRemoteChange = this.onRemoteChange.bind(this);
@@ -30,16 +31,14 @@ var Bindings = /** @class */ (function () {
     };
     // Listen for both monaco editor changes and ShareDB changes
     Bindings.prototype.listen = function () {
-        if (!this.viewOnly) {
-            this.editor.onDidChangeModelContent(this.onLocalChange);
-        }
+        if (!this.viewOnly)
+            this.model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
     };
     // Stop listening for changes
     Bindings.prototype.unlisten = function () {
-        if (!this.viewOnly) {
-            this.editor.onDidChangeModelContent(function () { });
-        }
+        if (!this.viewOnly)
+            this.model.onDidChangeContent(function () { });
         this.doc.on('op', this.onRemoteChange);
     };
     // Transform monaco content change delta to ShareDB Operation.
@@ -109,13 +108,20 @@ var Bindings = /** @class */ (function () {
                     forceMoveMarkers: true
                 });
             }
-            if (this.viewOnly) {
-                this.editor.updateOptions({ readOnly: false });
-            }
+            this.model.applyEdits(edits, true);
+            /*this.model.pushEditOperations(
+                edits.map((edit) => new Selection(edit.range.startLineNumber, edit.range.startColumn, edit.range.startLineNumber, edit.range.startColumn)),
+                edits,
+                (inverseEditOperations) => inverseEditOperations.map((op) => {
+                    const start = model.getOffsetAt(op.range.getStartPosition());
+                    const end = model.getOffsetAt(op.range.getEndPosition());
+                    
+                    if ()
+                })
+            );*/
+            /* if(this.viewOnly) { this.editor.updateOptions({ readOnly: false }); }
             this.editor.executeEdits("remote", edits);
-            if (this.viewOnly) {
-                this.editor.updateOptions({ readOnly: true });
-            }
+            if(this.viewOnly) { this.editor.updateOptions({ readOnly: true }); } */
         }
         this.suppress = false;
     };
@@ -135,11 +141,9 @@ var Bindings = /** @class */ (function () {
                 throw err;
             if (_this.model.getValue() !== _this.doc.data[_this.path]) {
                 _this.suppress = true;
-                var cursor = _this.editor.getPosition();
+                // let cursor = this.editor.getPosition();
                 _this.model.setValue(_this.doc.data[_this.path]);
-                if (cursor) {
-                    _this.editor.setPosition(cursor);
-                }
+                // if(cursor) { this.editor.setPosition(cursor); }
                 _this.suppress = false;
             }
         });

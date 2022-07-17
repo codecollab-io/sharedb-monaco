@@ -7,23 +7,24 @@
  * @license MIT
  */
 
-import WebSocket from 'reconnecting-websocket';
+import WebSocket from "reconnecting-websocket";
 import EventEmitter from "event-emitter-es6";
-import sharedb from 'sharedb/lib/client';
+import sharedb from "sharedb/lib/client";
+import { Socket } from "sharedb/lib/sharedb";
 import { editor } from "monaco-editor";
 import { ShareDBMonacoOptions } from "./types";
 import Bindings from "./bindings";
 
 declare interface ShareDBMonaco {
-    on(event: 'ready', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
+    on(event: "ready", listener: () => void): this;
+    on(event: "close", listener: () => void): this;
 }
 
 class ShareDBMonaco extends EventEmitter {
 
     WS?: WebSocket;
     doc: sharedb.Doc;
-    private connection: any;
+    private connection: sharedb.Connection;
     bindings?: Bindings;
 
     /**
@@ -45,7 +46,7 @@ class ShareDBMonaco extends EventEmitter {
 
         if ("wsurl" in opts) {
             this.WS = new WebSocket(opts.wsurl);
-            connection = new sharedb.Connection(this.WS as any);
+            connection = new sharedb.Connection(this.WS as Socket);
         } else {
             connection = opts.connection;
         }
@@ -53,7 +54,7 @@ class ShareDBMonaco extends EventEmitter {
         // Get ShareDB Doc
         const doc = connection.get(opts.namespace, opts.id);
 
-        doc.subscribe((err: any) => {
+        doc.subscribe((err) => {
             if (err) throw err;
 
             if (doc.type === null) {
@@ -69,17 +70,19 @@ class ShareDBMonaco extends EventEmitter {
     }
 
     // Attach editor to ShareDBMonaco
-    add(monaco: editor.ICodeEditor, path: string, viewOnly?: boolean) {
+    add(model: editor.ITextModel, path: string, viewOnly?: boolean) {
+
+        const { doc } = this;
 
         if(this.connection.state === "disconnected") { 
             throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
         }
 
-        let sharePath = path || "";
         this.bindings = new Bindings({
-            monaco: monaco,
-            path: sharePath,
-            doc: this.doc,
+            // monaco,
+            model,
+            path: path || "",
+            doc,
             viewOnly: !!viewOnly
         });
     }

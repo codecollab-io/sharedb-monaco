@@ -17,7 +17,7 @@ export type ShareDBMonacoOptions = {
 }
 
 export interface BindingsOptions {
-    monaco: editor.ICodeEditor;
+    model: editor.ITextModel;
     path: string;
     doc: sharedb.Doc;
     viewOnly: boolean;

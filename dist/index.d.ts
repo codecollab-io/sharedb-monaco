@@ -6,15 +6,15 @@
  * @author Carl Ian Voller <carlvoller8@gmail.com>
  * @license MIT
  */
-import WebSocket from 'reconnecting-websocket';
+import WebSocket from "reconnecting-websocket";
 import EventEmitter from "event-emitter-es6";
-import sharedb from 'sharedb/lib/client';
+import sharedb from "sharedb/lib/client";
 import { editor } from "monaco-editor";
 import { ShareDBMonacoOptions } from "./types";
 import Bindings from "./bindings";
 declare interface ShareDBMonaco {
-    on(event: 'ready', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
+    on(event: "ready", listener: () => void): this;
+    on(event: "close", listener: () => void): this;
 }
 declare class ShareDBMonaco extends EventEmitter {
     WS?: WebSocket;
@@ -30,7 +30,7 @@ declare class ShareDBMonaco extends EventEmitter {
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions);
-    add(monaco: editor.ICodeEditor, path: string, viewOnly?: boolean): void;
+    add(model: editor.ITextModel, path: string, viewOnly?: boolean): void;
     close(): void;
 }
 export default ShareDBMonaco;

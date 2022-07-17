@@ -5,14 +5,13 @@
  * @license MIT
  */
 
-import { editor } from "monaco-editor";
+import { editor, Selection } from "monaco-editor";
 import { Range } from "./Range";
 import sharedb from "sharedb/lib/client";
 import { BindingsOptions } from "./types";
 
 class Bindings {
     private suppress: boolean;
-    private editor: editor.ICodeEditor;
     private path: string;
     private doc: sharedb.Doc;
     private model: editor.ITextModel;
@@ -21,12 +20,15 @@ class Bindings {
 
     constructor(options: BindingsOptions) {
         this.suppress = false;
-        this.editor = options.monaco;
-        this.path = options.path;
-        this.doc = options.doc;
-        this.model = (this.editor.getModel() as editor.ITextModel);
-        this.lastValue = this.model.getValue();
-        this.viewOnly = options.viewOnly;
+        // this.editor = options.monaco;
+
+        const { path, doc, model, viewOnly } = options;
+
+        this.path = path;
+        this.doc = doc;
+        this.model = model;
+        this.lastValue = model.getValue();
+        this.viewOnly = viewOnly;
 
         this.setInitialValue();
 
@@ -46,13 +48,13 @@ class Bindings {
 
     // Listen for both monaco editor changes and ShareDB changes
     listen() {
-        if(!this.viewOnly) { this.editor.onDidChangeModelContent(this.onLocalChange); }
+        if(!this.viewOnly) this.model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
     }
 
     // Stop listening for changes
     unlisten() {
-        if(!this.viewOnly) { this.editor.onDidChangeModelContent(() => {}); }
+        if(!this.viewOnly) this.model.onDidChangeContent(() => {});
         this.doc.on('op', this.onRemoteChange);
     }
 
@@ -148,9 +150,22 @@ class Bindings {
                 });
             }
 
-            if(this.viewOnly) { this.editor.updateOptions({ readOnly: false }); }
+            this.model.applyEdits(edits, true);
+
+            /*this.model.pushEditOperations(
+                edits.map((edit) => new Selection(edit.range.startLineNumber, edit.range.startColumn, edit.range.startLineNumber, edit.range.startColumn)),
+                edits,
+                (inverseEditOperations) => inverseEditOperations.map((op) => {
+                    const start = model.getOffsetAt(op.range.getStartPosition());
+                    const end = model.getOffsetAt(op.range.getEndPosition());
+                    
+                    if ()
+                })
+            );*/
+
+            /* if(this.viewOnly) { this.editor.updateOptions({ readOnly: false }); }
             this.editor.executeEdits("remote", edits);
-            if(this.viewOnly) { this.editor.updateOptions({ readOnly: true }); }
+            if(this.viewOnly) { this.editor.updateOptions({ readOnly: true }); } */
         }
         this.suppress = false;
     }
@@ -170,9 +185,9 @@ class Bindings {
             if(err) throw err;
             if(this.model.getValue() !== this.doc.data[this.path]) {
                 this.suppress = true;
-                let cursor = this.editor.getPosition();
+                // let cursor = this.editor.getPosition();
                 this.model.setValue(this.doc.data[this.path]);
-                if(cursor) { this.editor.setPosition(cursor); }
+                // if(cursor) { this.editor.setPosition(cursor); }
                 this.suppress = false;
             }
         });

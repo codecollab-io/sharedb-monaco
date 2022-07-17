@@ -73,15 +73,16 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         return _this;
     }
     // Attach editor to ShareDBMonaco
-    ShareDBMonaco.prototype.add = function (monaco, path, viewOnly) {
+    ShareDBMonaco.prototype.add = function (model, path, viewOnly) {
+        var doc = this.doc;
         if (this.connection.state === "disconnected") {
             throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
         }
-        var sharePath = path || "";
         this.bindings = new bindings_1.default({
-            monaco: monaco,
-            path: sharePath,
-            doc: this.doc,
+            // monaco,
+            model: model,
+            path: path || "",
+            doc: doc,
             viewOnly: !!viewOnly
         });
     };

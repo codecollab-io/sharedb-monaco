@@ -1,6 +1,6 @@
 {
   "name": "sharedb-monaco",
-  "version": "1.0.15",
+  "version": "2.0.0-beta1",
   "description": "ShareDB Bindings for the Monaco Editor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,13 +19,16 @@
   "homepage": "https://github.com/codecollab-io/sharedb-monaco#readme",
   "devDependencies": {
     "@types/event-emitter-es6": "^1.1.0",
-    "@types/sharedb": "^1.0.10",
-    "typescript": "^4.0.5"
+    "@types/sharedb": "^2.2.2",
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
+    "eslint": "^8.19.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "event-emitter-es6": "^1.1.5",
-    "monaco-editor": "^0.21.2",
+    "monaco-editor": "^0.33.0",
     "reconnecting-websocket": "^4.4.0",
-    "sharedb": "^1.4.2"
+    "sharedb": "^3.0.0"
   }
 }

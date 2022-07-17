@@ -8,7 +8,6 @@ import { editor } from "monaco-editor";
 import { BindingsOptions } from "./types";
 declare class Bindings {
     private suppress;
-    private editor;
     private path;
     private doc;
     private model;
