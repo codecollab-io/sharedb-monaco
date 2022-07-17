@@ -101,7 +101,17 @@ class ShareDBMonaco extends EventEmitter {
         const { connection, namespace, id, bindings } = this;
 
         this.doc = connection.get(namespace, id);
-        bindings.forEach((binding) => binding.resume(this.doc));
+
+        this.doc.subscribe((err) => {
+            if (err) throw err;
+
+            if (this.doc.type === null) {
+                throw new Error("ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.");
+            }
+
+            bindings.forEach((binding) => binding.resume(this.doc));
+
+        });
 
     }
 

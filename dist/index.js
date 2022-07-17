@@ -96,7 +96,14 @@ var ShareDBMonaco = /** @class */ (function (_super) {
         var _this = this;
         var _a = this, connection = _a.connection, namespace = _a.namespace, id = _a.id, bindings = _a.bindings;
         this.doc = connection.get(namespace, id);
-        bindings.forEach(function (binding) { return binding.resume(_this.doc); });
+        this.doc.subscribe(function (err) {
+            if (err)
+                throw err;
+            if (_this.doc.type === null) {
+                throw new Error("ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.");
+            }
+            bindings.forEach(function (binding) { return binding.resume(_this.doc); });
+        });
     };
     // Detach model from ShareDBMonaco
     ShareDBMonaco.prototype.remove = function (id) {
