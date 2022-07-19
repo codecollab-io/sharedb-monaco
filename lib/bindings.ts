@@ -5,30 +5,39 @@
  * @license MIT
  */
 
-import { editor, Selection } from "monaco-editor";
-import { Range } from "./Range";
-import sharedb from "sharedb/lib/client";
-import { BindingsOptions } from "./types";
+import { editor as IEditorTypes, Position, Range } from 'monaco-editor';
+import sharedb from 'sharedb/lib/client';
+import ShareDBMonaco from '.';
+import type { BindingsOptions } from './types';
 
 class Bindings {
+
     private suppress: boolean;
+
     private path: string;
+
     private doc: sharedb.Doc;
-    private model: editor.ITextModel;
+
+    private model: IEditorTypes.ITextModel;
+
     private lastValue: string;
+
     private viewOnly: boolean;
 
-    constructor(options: BindingsOptions) {
-        this.suppress = false;
-        // this.editor = options.monaco;
+    private parent: ShareDBMonaco;
 
-        const { path, doc, model, viewOnly } = options;
+    constructor(options: BindingsOptions) {
+
+        this.suppress = false;
+
+        const { path, doc, model, viewOnly, parent } = options;
 
         this.path = path;
         this.doc = doc;
         this.model = model;
         this.lastValue = model.getValue();
         this.viewOnly = viewOnly;
+        this.parent = parent;
 
         this.setInitialValue();
 
@@ -36,193 +45,224 @@ class Bindings {
         this.onRemoteChange = this.onRemoteChange.bind(this);
 
         this.listen();
+
     }
 
     // Sets the monaco editor's value to the ShareDB document's value
     setInitialValue() {
+
         this.suppress = true;
         this.model.setValue(this.doc.data[this.path]);
         this.lastValue = this.doc.data[this.path];
         this.suppress = false;
+
     }
 
     // Listen for both monaco editor changes and ShareDB changes
     listen() {
-        console.log("LISTEN")
-        if(!this.viewOnly) this.model.onDidChangeContent(this.onLocalChange);
+
+        if (!this.viewOnly) this.model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
+
     }
 
     // Stop listening for changes
     unlisten() {
-        console.log("UNLISTEN");
-        if(!this.viewOnly) this.model.onDidChangeContent(() => {});
+
+        if (!this.viewOnly) this.model.onDidChangeContent(() => {});
         this.doc.on('op', this.onRemoteChange);
+
     }
 
     // Pause connections
     pause() {
-        console.log("PAUSE", this.doc.id);
+
         this.unlisten();
+
     }
 
     // Resume connections
     resume(doc: sharedb.Doc) {
+
         this.doc = doc;
         this.listen();
-        console.log("RESUME", this.doc.id);
-        this.model.setValue(this.doc.data[this.path]);
+
+        this.setInitialValue();
+
     }
 
     // Transform monaco content change delta to ShareDB Operation.
-    deltaTransform(delta: editor.IModelContentChange) {
-        const { rangeOffset, rangeLength, text } = delta;
-        
+    deltaTransform(delta: IEditorTypes.IModelContentChange) {
+
+        const { rangeOffset: offset, rangeLength: length, text } = delta;
+
         let op: Array<any>;
-        if (text.length > 0 && rangeLength === 0) {
-            op = this.getInsertOp(rangeOffset, text);
-        } else if (text.length > 0 && rangeLength > 0) {
-            op = this.getReplaceOp(rangeOffset, rangeLength, text);
-        } else if (text.length === 0 && rangeLength > 0) {
-            op = this.getDeleteOp(rangeOffset, rangeLength);
-        } else {
-            throw new Error("Unexpected change: " + JSON.stringify(delta));
-        }
+        if (text.length > 0 && length === 0) op = this.getInsertOp(offset, text);
+        else if (text.length > 0 && length > 0) op = this.getReplaceOp(offset, length, text);
+        else if (text.length === 0 && length > 0) op = this.getDeleteOp(offset, length);
+        else throw new Error(`Unexpected change: ${JSON.stringify(delta)}`);
 
         return op;
+
     }
 
     // Converts insert operation into json0 (sharedb-op)
     getInsertOp(index: number, text: string) {
-        let p = [this.path, index],
-            a = "si",
-            s = text;
-        
-        let op: any = { p: p };
-        op[a] = s;
+
+        const [p, a, s] = [[this.path, index], 'si', text];
+
+        const op = { p, [a]: s };
         return [op];
+
     }
 
     // Converts delete operation into json0 (sharedb-op)
     getDeleteOp(index: number, length: number) {
 
-        let text = this.lastValue.slice(index , index + length);
+        const text = this.lastValue.slice(index, index + length);
+        const [p, a, s] = [[this.path, index], 'sd', text];
 
-        let p = [this.path, index],
-            a = "sd",
-            s = text;
-        
-        let op: any = { p: p };
-        op[a] = s;
+        const op = { p, [a]: s };
         return [op];
+
     }
 
     // Converts replace operation into json0 (sharedb-op)
     getReplaceOp(index: number, length: number, text: string) {
 
-        let oldText = this.lastValue.slice(index , index + length);
+        const oldText = this.lastValue.slice(index, index + length);
 
-        let p = [this.path, index],
-            a1 = "sd",
-            s1 = oldText,
-            a2 = "si",
-            s2 = text
-        
-        let op1: any = { p: p },
-            op2: any = { p: p };
-        op1[a1] = s1;
-        op2[a2] = s2;
+        const [p, a1, s1, a2, s2] = [[this.path, index], 'sd', oldText, 'si', text];
+
+        const op1 = { p, [a1]: s1 };
+        const op2 = { p, [a2]: s2 };
         return [op1, op2];
+
     }
 
     // Transforms ShareDB Operations to monaco deltas to be applied.
     opTransform(ops: Array<any>) {
 
-        let model = this.model;
+        const { model, viewOnly } = this;
         this.suppress = true;
 
-        for(let i = 0; i < ops.length; i++) {
-            let op = ops[i];
+        for (let i = 0; i < ops.length; i += 1) {
+
+            const op = ops[i];
             const index = op.p[op.p.length - 1];
             const pos = model.getPositionAt(index);
             const start = pos;
 
-            let edits: Array<editor.IIdentifiedSingleEditOperation> = [];
+            const edits: Array<IEditorTypes.IIdentifiedSingleEditOperation> = [];
 
-            if("sd" in op) {
+            if ('sd' in op) {
+
                 const end = model.getPositionAt(index + op.sd.length);
                 edits.push({
                     range: new Range(start.lineNumber, start.column, end.lineNumber, end.column),
-                    text: "",
-                    forceMoveMarkers: true
+                    text: '',
+                    forceMoveMarkers: true,
                 });
+
             }
 
-            if("si" in op) {
+            if ('si' in op) {
+
+                const insertRange = new Range(
+                    start.lineNumber,
+                    start.column,
+                    start.lineNumber,
+                    start.column,
+                );
+
                 edits.push({
-                    range: new Range(start.lineNumber, start.column, start.lineNumber, start.column),
+                    range: insertRange,
                     text: op.si,
-                    forceMoveMarkers: true
+                    forceMoveMarkers: true,
                 });
+
             }
 
-            this.model.applyEdits(edits, true);
+            // this.model.applyEdits(edits, true);
 
-            /*this.model.pushEditOperations(
-                edits.map((edit) => new Selection(edit.range.startLineNumber, edit.range.startColumn, edit.range.startLineNumber, edit.range.startColumn)),
+            /* this.model.pushEditOperations(
+                edits.map((edit) => new Selection(
+                    edit.range.startLineNumber, edit.range.startColumn
+                     edit.range.startLineNumber, edit.range.startColumn)),
                 edits,
                 (inverseEditOperations) => inverseEditOperations.map((op) => {
                     const start = model.getOffsetAt(op.range.getStartPosition());
                     const end = model.getOffsetAt(op.range.getEndPosition());
-                    
+
                     if ()
                 })
-            );*/
+            ); */
+
+            if (this.parent.allEditors.size === 0) return this.model.applyEdits(edits);
+
+            this.parent.allEditors.forEach((editor) => {
+
+                if (viewOnly) editor.updateOptions({ readOnly: false });
+                editor.executeEdits('remote', edits);
+                if (viewOnly) editor.updateOptions({ readOnly: true });
+
+            });
 
             /* if(this.viewOnly) { this.editor.updateOptions({ readOnly: false }); }
             this.editor.executeEdits("remote", edits);
             if(this.viewOnly) { this.editor.updateOptions({ readOnly: true }); } */
+
         }
         this.suppress = false;
+
     }
 
     // Handles local editor change events
-    onLocalChange(delta: editor.IModelContentChangedEvent) {
-        console.log("ONLOCALCHANGE", this.suppress);
-        if(this.suppress) { return; }
+    onLocalChange(delta: IEditorTypes.IModelContentChangedEvent) {
 
-        let ops: Array<any> = [];
-        for(let i = 0; i < delta.changes.length; i++) {
-            ops = ops.concat(this.deltaTransform(delta.changes[i]));
-        }
+        if (this.suppress) return;
+
+        const ops: Array<any> = [];
+        delta.changes.forEach((change) => ops.concat(this.deltaTransform(change)));
 
         this.lastValue = this.model.getValue();
 
         this.doc.submitOp(ops, { source: true }, (err) => {
-            if(err) throw err;
-            if(this.model.getValue() !== this.doc.data[this.path]) {
+
+            if (err) throw err;
+            if (this.model.getValue() !== this.doc.data[this.path]) {
+
                 this.suppress = true;
-                // let cursor = this.editor.getPosition();
+                const cursors: Array<Position | null> = [];
+                const editors = Array.from(this.parent.allEditors.values());
+
+                editors.forEach((editor) => cursors.push(editor.getPosition()));
                 this.model.setValue(this.doc.data[this.path]);
+                cursors.forEach((pos, i) => !pos || editors[i].setPosition(pos));
                 // if(cursor) { this.editor.setPosition(cursor); }
                 this.suppress = false;
+
             }
+
         });
+
     }
 
     // Handles remote operations from ShareDB
     onRemoteChange(ops: Array<any>, source: any) {
-        if(ops.length === 0) { return; }
+
+        if (ops.length === 0) return;
 
         const opsPath = ops[0].p.slice(0, ops[0].p.length - 1).toString();
-        if(source === true || opsPath !== this.path) {
-            return;
-        }
+
+        if (source === true || opsPath !== this.path) return;
 
         this.opTransform(ops);
 
         this.lastValue = this.model.getValue();
+
     }
+
 }
 
 export default Bindings;

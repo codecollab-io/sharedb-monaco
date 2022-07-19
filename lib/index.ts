@@ -1,116 +1,131 @@
 /**
  * sharedb-monaco
  * ShareDB bindings for the Monaco Editor
- * 
+ *
  * @name index.ts
  * @author Carl Ian Voller <carlvoller8@gmail.com>
  * @license MIT
  */
 
-import WebSocket from "reconnecting-websocket";
-import EventEmitter from "event-emitter-es6";
-import sharedb from "sharedb/lib/client";
-import { Socket } from "sharedb/lib/sharedb";
-import { editor } from "monaco-editor";
-import { ShareDBMonacoOptions } from "./types";
-import Bindings from "./bindings";
+import WebSocket from 'reconnecting-websocket';
+import sharedb from 'sharedb/lib/client';
+import type { Socket } from 'sharedb/lib/sharedb';
+import { editor } from 'monaco-editor';
+import type { AttachOptions, ShareDBMonacoOptions } from './types';
+import Bindings from './bindings';
 
-declare interface ShareDBMonaco {
-    on(event: "ready", listener: () => void): this;
-    on(event: "close", listener: () => void): this;
-}
-
-class ShareDBMonaco extends EventEmitter {
+class ShareDBMonaco {
 
     WS?: WebSocket;
+
     doc: sharedb.Doc;
-    bindings: Map<string, Bindings> = new Map();
-    
+
+    binding?: Bindings;
+
     private connection: sharedb.Connection;
+
     private namespace: string;
+
     private id: string;
+
+    private model: editor.ITextModel;
+
+    private editors: Map<string, editor.ICodeEditor> = new Map();
 
     /**
      * ShareDBMonaco
      * @param {ShareDBMonacoOptions} opts - Options object
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
+     * @param {string} opts.path - Path on ShareDB document to apply operations to.
+     * @param {boolean} opts.viewOnly - Set model to view only mode
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions) {
-        super();
+
+        const { id, namespace, path, viewOnly } = opts;
 
         // Parameter checks
-        if(!opts.id) { throw new Error("'id' is required but not provided"); }
-        if(!opts.namespace) { throw new Error("'namespace' is required but not provided"); }
+        if (!id) throw new Error("'id' is required but not provided");
+        if (!namespace) throw new Error("'namespace' is required but not provided");
+        if (typeof viewOnly !== 'boolean') throw new Error("'viewOnly' is required but not provided");
 
         let connection: sharedb.Connection;
 
-        if ("wsurl" in opts) {
+        if ('wsurl' in opts) {
+
             this.WS = new WebSocket(opts.wsurl);
             connection = new sharedb.Connection(this.WS as Socket);
-        } else {
-            connection = opts.connection;
-        }
-        
+
+        } else connection = opts.connection;
+
         // Get ShareDB Doc
         const doc = connection.get(opts.namespace, opts.id);
 
-        doc.subscribe((err) => {
-            if (err) throw err;
-
-            if (doc.type === null) {
-                throw new Error("ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.");
-            }
-
-            // Document has been initialised, emit 'ready' event
-            this.emit("ready");
-        });
-
         this.doc = doc;
         this.connection = connection;
-        this.namespace = opts.namespace;
-        this.id = opts.id;
+        this.namespace = namespace;
+        this.id = id;
+        this.model = editor.createModel('');
+
+        doc.subscribe((err) => {
+
+            if (err) throw err;
+
+            if (doc.type === null) throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
+
+            this.binding = new Bindings({ model: this.model, path, doc, viewOnly, parent: this });
+
+        });
+
     }
 
-    // Attach model to ShareDBMonaco
-    add(model: editor.ITextModel, path: string, viewOnly: boolean = false) {
+    get allEditors() {
 
-        const { doc } = this;
+        return this.editors;
 
-        if(this.connection.state === "disconnected") { 
-            throw new Error("add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.");
-        }
+    }
 
-        if (this.bindings.has(model.id)) return this.bindings.get(model.id);
+    // Attach editor to ShareDB model
+    add(codeEditor: editor.ICodeEditor, options?: AttachOptions): editor.ITextModel {
 
-        this.bindings.set(model.id, new Bindings({ model, path, doc, viewOnly }));
+        if (this.connection.state === 'disconnected') throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
+        if (this.editors.size === 0) this.resume();
+
+        // Set model language
+        if (options?.langId) editor.setModelLanguage(this.model, options.langId);
+        else if (options?.model) editor.setModelLanguage(this.model, options.model.getLanguageId());
+
+        codeEditor.setModel(this.model);
+
+        if (!this.editors.has(codeEditor.getId())) this.editors.set(codeEditor.getId(), codeEditor);
+        return this.model;
 
     }
 
     // Pause doc subscriptions
-    pause() {
-        console.log("PAUSING", this.id);
-        this.bindings.forEach((binding) => binding.pause());
+    private pause() {
+
+        this.binding?.pause();
         this.doc.unsubscribe(() => this.doc.destroy());
+
     }
 
     // Resume doc subscriptions
-    resume() {
+    private resume() {
 
-        const { connection, namespace, id, bindings } = this;
+        const { connection, namespace, id, binding } = this;
 
         this.doc = connection.get(namespace, id);
 
         this.doc.subscribe((err) => {
+
             if (err) throw err;
 
-            if (this.doc.type === null) {
-                throw new Error("ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.");
-            }
+            if (this.doc.type === null) throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
 
-            bindings.forEach((binding) => binding.resume(this.doc));
+            binding?.resume(this.doc);
 
         });
 
@@ -118,22 +133,34 @@ class ShareDBMonaco extends EventEmitter {
 
     // Detach model from ShareDBMonaco
     remove(id: string) {
-        if (this.bindings.has(id)) this.bindings.delete(id);
+
+        if (this.editors.has(id)) {
+
+            // Forced ! here cause typescript can't recognise I used the has() operator previously.
+            // https://github.com/microsoft/TypeScript/issues/9619
+            this.editors.get(id)!.setModel(null);
+            this.editors.delete(id);
+
+        }
+        if (this.editors.size === 0) this.pause();
+
     }
 
     close() {
 
         this.doc.destroy();
-        this.bindings.forEach((binding) => binding.unlisten());
-        this.emit("close");
+        this.binding?.unlisten();
 
         // If connection was opened by this instance, close it.
         if (this.WS) {
+
             this.WS?.close();
             this.connection.close();
+
         }
 
     }
+
 }
 
 export default ShareDBMonaco;

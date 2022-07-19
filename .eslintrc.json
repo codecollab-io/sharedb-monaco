@@ -1,82 +1,42 @@
 {
     "env": {
-      "browser": true,
-      "es2021": true
+        "browser": true,
+        "es2021": true
     },
     "extends": [
-      "eslint:recommended",
-      "airbnb",
-      "plugin:react/recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:import/typescript"
+        "airbnb-base"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-      "ecmaFeatures": {
-        "jsx": true
-      },
-      "ecmaVersion": 12,
-      "sourceType": "module"
+        "ecmaVersion": "latest",
+        "sourceType": "module"
     },
     "settings": {
-      "import/resolver": {
-        "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
-      }
+        "import/resolver": {
+            "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
+        }
     },
     "plugins": [
-      "react",
-      "import",
-      "@typescript-eslint"
+        "@typescript-eslint"
     ],
     "rules": {
-      "linebreak-style":  ["error", "unix"],
-      "import/no-extraneous-dependencies": [
-        "error",
-        {
-          "devDependencies": true,
-          "optionalDependencies": false,
-          "peerDependencies": false
-        }
-      ],
-      "react/jsx-filename-extension": [1, { "extensions": [".tsx", ".ts"] }],
-      "no-use-before-define": "off",
-      "react/jsx-closing-tag-location": "off",
-      "@typescript-eslint/no-use-before-define": "warn",
-      "indent": ["error", 4],
-      "react/jsx-indent": ["error", 4],
-      "react/jsx-indent-props": ["error", 4],
-      "react/jsx-wrap-multilines": "off",
-      "padded-blocks": ["warn", "always"],
-      "react/require-default-props": "off",    
-      "quotes": "off",
-      "eol-last": "off",
-      "no-plusplus": "off",
-      "comma-dangle": ["error", "never"],
-      "jsx-a11y/click-events-have-key-events": "off",
-      "react/jsx-closing-bracket-location": ["error", "after-props"],
-      "consistent-return": "off",
-      "object-curly-newline": "off",
-      "react/jsx-props-no-spreading": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "import/extensions": ["error", {
-        "tsx": "never",
-        "ts": "never",
-        "json": "always"
-      }],
-      "@typescript-eslint/member-delimiter-style": [
-        "warn",
-        {
-          "multiline": {
-            "delimiter": "semi",
-            "requireLast": true
-          },
-          "singleline": {
-            "delimiter": "semi",
-            "requireLast": false
-          }
-        }
-      ]
+        "consistent-return": "off",
+        "padded-blocks": [
+            "error",
+            "always"
+        ],
+        "indent": [
+            "error",
+            4
+        ],
+        "object-curly-newline": "off",
+        "import/extensions": [
+            "error",
+            {
+                "tsx": "never",
+                "ts": "never",
+                "json": "always"
+            }
+        ]
     }
-  }
-  
+}
