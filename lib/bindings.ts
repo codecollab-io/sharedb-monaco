@@ -18,13 +18,26 @@ class Bindings {
 
     private doc: sharedb.Doc;
 
-    private model: IEditorTypes.ITextModel;
+    private _model: IEditorTypes.ITextModel;
 
     private lastValue: string;
 
     private viewOnly: boolean;
 
     private parent: ShareDBMonaco;
+
+    get model() { return this._model; }
+
+    set model(model: IEditorTypes.ITextModel) {
+
+        const editors = Array.from(this.parent.editors.values());
+        const cursors = editors.map((editor) => editor.getPosition());
+        this._model = model;
+        this.unlisten();
+        this.listen();
+        cursors.forEach((pos, i) => !pos || editors[i].setPosition(pos));
+
+    }
 
     constructor(options: BindingsOptions) {
 
@@ -34,7 +47,7 @@ class Bindings {
 
         this.path = path;
         this.doc = doc;
-        this.model = model;
+        this._model = model;
         this.lastValue = model.getValue();
         this.viewOnly = viewOnly;
         this.parent = parent;
@@ -50,6 +63,8 @@ class Bindings {
 
     // Sets the monaco editor's value to the ShareDB document's value
     setInitialValue() {
+
+        if (this.model.getValue() === this.doc.data[this.path]) return;
 
         this.suppress = true;
         this.model.setValue(this.doc.data[this.path]);
@@ -198,9 +213,9 @@ class Bindings {
                 })
             ); */
 
-            if (this.parent.allEditors.size === 0) return this.model.applyEdits(edits);
+            if (this.parent.editors.size === 0) return this.model.applyEdits(edits);
 
-            this.parent.allEditors.forEach((editor) => {
+            this.parent.editors.forEach((editor) => {
 
                 if (viewOnly) editor.updateOptions({ readOnly: false });
                 editor.executeEdits('remote', edits);
@@ -214,6 +229,14 @@ class Bindings {
 
         }
         this.suppress = false;
+
+    }
+
+    setViewOnly(viewOnly: boolean) {
+
+        this.viewOnly = viewOnly;
+        this.unlisten();
+        this.listen();
 
     }
 
@@ -234,7 +257,7 @@ class Bindings {
 
                 this.suppress = true;
                 const cursors: Array<Position | null> = [];
-                const editors = Array.from(this.parent.allEditors.values());
+                const editors = Array.from(this.parent.editors.values());
 
                 editors.forEach((editor) => cursors.push(editor.getPosition()));
                 this.model.setValue(this.doc.data[this.path]);

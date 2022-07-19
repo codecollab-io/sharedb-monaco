@@ -13,7 +13,7 @@ var Bindings = /** @class */ (function () {
         var path = options.path, doc = options.doc, model = options.model, viewOnly = options.viewOnly, parent = options.parent;
         this.path = path;
         this.doc = doc;
-        this.model = model;
+        this._model = model;
         this.lastValue = model.getValue();
         this.viewOnly = viewOnly;
         this.parent = parent;
@@ -22,8 +22,23 @@ var Bindings = /** @class */ (function () {
         this.onRemoteChange = this.onRemoteChange.bind(this);
         this.listen();
     }
+    Object.defineProperty(Bindings.prototype, "model", {
+        get: function () { return this._model; },
+        set: function (model) {
+            var editors = Array.from(this.parent.editors.values());
+            var cursors = editors.map(function (editor) { return editor.getPosition(); });
+            this._model = model;
+            this.unlisten();
+            this.listen();
+            cursors.forEach(function (pos, i) { return !pos || editors[i].setPosition(pos); });
+        },
+        enumerable: false,
+        configurable: true
+    });
     // Sets the monaco editor's value to the ShareDB document's value
     Bindings.prototype.setInitialValue = function () {
+        if (this.model.getValue() === this.doc.data[this.path])
+            return;
         this.suppress = true;
         this.model.setValue(this.doc.data[this.path]);
         this.lastValue = this.doc.data[this.path];
@@ -128,9 +143,9 @@ var Bindings = /** @class */ (function () {
                     if ()
                 })
             ); */
-            if (this_1.parent.allEditors.size === 0)
+            if (this_1.parent.editors.size === 0)
                 return { value: this_1.model.applyEdits(edits) };
-            this_1.parent.allEditors.forEach(function (editor) {
+            this_1.parent.editors.forEach(function (editor) {
                 if (viewOnly)
                     editor.updateOptions({ readOnly: false });
                 editor.executeEdits('remote', edits);
@@ -146,6 +161,11 @@ var Bindings = /** @class */ (function () {
         }
         this.suppress = false;
     };
+    Bindings.prototype.setViewOnly = function (viewOnly) {
+        this.viewOnly = viewOnly;
+        this.unlisten();
+        this.listen();
+    };
     // Handles local editor change events
     Bindings.prototype.onLocalChange = function (delta) {
         var _this = this;
@@ -160,7 +180,7 @@ var Bindings = /** @class */ (function () {
             if (_this.model.getValue() !== _this.doc.data[_this.path]) {
                 _this.suppress = true;
                 var cursors_1 = [];
-                var editors_1 = Array.from(_this.parent.allEditors.values());
+                var editors_1 = Array.from(_this.parent.editors.values());
                 editors_1.forEach(function (editor) { return cursors_1.push(editor.getPosition()); });
                 _this.model.setValue(_this.doc.data[_this.path]);
                 cursors_1.forEach(function (pos, i) { return !pos || editors_1[i].setPosition(pos); });

@@ -11,10 +11,12 @@ declare class Bindings {
     private suppress;
     private path;
     private doc;
-    private model;
+    private _model;
     private lastValue;
     private viewOnly;
     private parent;
+    get model(): IEditorTypes.ITextModel;
+    set model(model: IEditorTypes.ITextModel);
     constructor(options: BindingsOptions);
     setInitialValue(): void;
     listen(): void;
@@ -35,6 +37,7 @@ declare class Bindings {
         p: (string | number)[];
     }[];
     opTransform(ops: Array<any>): void;
+    setViewOnly(viewOnly: boolean): void;
     onLocalChange(delta: IEditorTypes.IModelContentChangedEvent): void;
     onRemoteChange(ops: Array<any>, source: any): void;
 }

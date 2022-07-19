@@ -3,20 +3,22 @@
 // Definitions by: Carl Voller <https://github.com/Portatolova>
 // TypeScript Version: 4.7
 
-import type { editor } from 'monaco-editor';
+import type { editor, Uri } from 'monaco-editor';
 import sharedb from 'sharedb/lib/client';
 import ShareDBMonaco from '..';
 
 export type ShareDBMonacoOptions = {
     id: string;
     namespace: string;
-    path: string;
+    sharePath: string;
+    uri: Uri;
     viewOnly: boolean;
     wsurl: string;
 } | {
     id: string;
     namespace: string;
-    path: string;
+    sharePath: string;
+    uri: Uri;
     viewOnly: boolean;
     connection: sharedb.Connection;
 }

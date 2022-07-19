@@ -10,7 +10,7 @@
 import WebSocket from 'reconnecting-websocket';
 import sharedb from 'sharedb/lib/client';
 import type { Socket } from 'sharedb/lib/sharedb';
-import { editor } from 'monaco-editor';
+import { editor, Uri } from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 import Bindings from './bindings';
 
@@ -18,33 +18,50 @@ class ShareDBMonaco {
 
     WS?: WebSocket;
 
-    doc: sharedb.Doc;
-
-    binding?: Bindings;
+    private model: editor.ITextModel;
 
     private connection: sharedb.Connection;
 
-    private namespace: string;
+    private binding?: Bindings;
 
-    private id: string;
+    private _viewOnly: boolean;
 
-    private model: editor.ITextModel;
+    private _namespace: string;
 
-    private editors: Map<string, editor.ICodeEditor> = new Map();
+    private _id: string;
+
+    private _editors: Map<string, editor.ICodeEditor> = new Map();
+
+    private _doc: sharedb.Doc;
+
+    private _sharePath: string;
+
+    get viewOnly() { return this._viewOnly; }
+
+    get namespace() { return this._namespace; }
+
+    get id() { return this._id; }
+
+    get editors() { return this._editors; }
+
+    get doc() { return this._doc; }
+
+    get sharePath() { return this._sharePath; }
 
     /**
      * ShareDBMonaco
      * @param {ShareDBMonacoOptions} opts - Options object
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
-     * @param {string} opts.path - Path on ShareDB document to apply operations to.
+     * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions) {
 
-        const { id, namespace, path, viewOnly } = opts;
+        const { id, namespace, sharePath, viewOnly, uri } = opts;
 
         // Parameter checks
         if (!id) throw new Error("'id' is required but not provided");
@@ -63,11 +80,13 @@ class ShareDBMonaco {
         // Get ShareDB Doc
         const doc = connection.get(opts.namespace, opts.id);
 
-        this.doc = doc;
         this.connection = connection;
-        this.namespace = namespace;
-        this.id = id;
-        this.model = editor.createModel('');
+        this.model = editor.createModel('', undefined, uri);
+        this._doc = doc;
+        this._namespace = namespace;
+        this._id = id;
+        this._viewOnly = viewOnly;
+        this._sharePath = sharePath;
 
         doc.subscribe((err) => {
 
@@ -75,15 +94,66 @@ class ShareDBMonaco {
 
             if (doc.type === null) throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
 
-            this.binding = new Bindings({ model: this.model, path, doc, viewOnly, parent: this });
+            this.binding = new Bindings({
+                model: this.model, path: sharePath, doc, viewOnly, parent: this,
+            });
 
         });
 
     }
 
-    get allEditors() {
+    setViewOnly(viewOnly: boolean) {
 
-        return this.editors;
+        this.binding?.setViewOnly(viewOnly);
+
+    }
+
+    setModelUri(uri: Uri) {
+
+        const { model, doc, viewOnly, sharePath } = this;
+
+        const newModel = editor.createModel(model.getValue(), model.getLanguageId(), uri);
+
+        // const { fsPath } = uri; // \\filename
+        // const formatted = uri.toString(); // file:///filename
+
+        /* const editStacks = model._commandManager._undoRedoService._editStacks
+
+        const newEditStacks = new Map()
+
+        function adjustEditStack(c) {
+            c.actual.model = newModel
+            c.resourceLabel = fsPath
+            c.resourceLabels = [fsPath]
+            c.strResource = formatted
+            c.strResources = [formatted]
+        }
+
+        editStacks.forEach((s) => {
+            s.resourceLabel = fsPath
+            s.strResource = formatted
+
+            s._future.forEach(adjustEditStack)
+            s._past.forEach(adjustEditStack)
+
+            newEditStacks.set(formatted, s)
+        })
+
+        newModel._commandManager._undoRedoService._editStacks = newEditStacks */
+
+        model.dispose();
+
+        const editors = Array.from(this.editors.values());
+        const cursors = editors.map((e) => e.getPosition());
+        this.editors.forEach((e) => e.setModel(newModel));
+        cursors.forEach((pos, i) => !pos || editors[i].setPosition(pos));
+
+        this.binding?.unlisten();
+        this.binding = new Bindings({
+            model: newModel, path: sharePath, doc, viewOnly, parent: this,
+        });
+
+        return newModel;
 
     }
 
@@ -117,7 +187,7 @@ class ShareDBMonaco {
 
         const { connection, namespace, id, binding } = this;
 
-        this.doc = connection.get(namespace, id);
+        this._doc = connection.get(namespace, id);
 
         this.doc.subscribe((err) => {
 

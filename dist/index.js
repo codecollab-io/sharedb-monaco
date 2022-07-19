@@ -21,15 +21,16 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {ShareDBMonacoOptions} opts - Options object
      * @param {string} opts.id - ShareDB document ID
      * @param {string} opts.namespace - ShareDB document namespace
-     * @param {string} opts.path - Path on ShareDB document to apply operations to.
+     * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     function ShareDBMonaco(opts) {
         var _this = this;
-        this.editors = new Map();
-        var id = opts.id, namespace = opts.namespace, path = opts.path, viewOnly = opts.viewOnly;
+        this._editors = new Map();
+        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, viewOnly = opts.viewOnly, uri = opts.uri;
         // Parameter checks
         if (!id)
             throw new Error("'id' is required but not provided");
@@ -46,26 +47,103 @@ var ShareDBMonaco = /** @class */ (function () {
             connection = opts.connection;
         // Get ShareDB Doc
         var doc = connection.get(opts.namespace, opts.id);
-        this.doc = doc;
         this.connection = connection;
-        this.namespace = namespace;
-        this.id = id;
-        this.model = monaco_editor_1.editor.createModel('');
+        this.model = monaco_editor_1.editor.createModel('', undefined, uri);
+        this._doc = doc;
+        this._namespace = namespace;
+        this._id = id;
+        this._viewOnly = viewOnly;
+        this._sharePath = sharePath;
         doc.subscribe(function (err) {
             if (err)
                 throw err;
             if (doc.type === null)
                 throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
-            _this.binding = new bindings_1.default({ model: _this.model, path: path, doc: doc, viewOnly: viewOnly, parent: _this });
+            _this.binding = new bindings_1.default({
+                model: _this.model, path: sharePath,
+                doc: doc,
+                viewOnly: viewOnly,
+                parent: _this,
+            });
         });
     }
-    Object.defineProperty(ShareDBMonaco.prototype, "allEditors", {
-        get: function () {
-            return this.editors;
-        },
+    Object.defineProperty(ShareDBMonaco.prototype, "viewOnly", {
+        get: function () { return this._viewOnly; },
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(ShareDBMonaco.prototype, "namespace", {
+        get: function () { return this._namespace; },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ShareDBMonaco.prototype, "id", {
+        get: function () { return this._id; },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ShareDBMonaco.prototype, "editors", {
+        get: function () { return this._editors; },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ShareDBMonaco.prototype, "doc", {
+        get: function () { return this._doc; },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ShareDBMonaco.prototype, "sharePath", {
+        get: function () { return this._sharePath; },
+        enumerable: false,
+        configurable: true
+    });
+    ShareDBMonaco.prototype.setViewOnly = function (viewOnly) {
+        var _a;
+        (_a = this.binding) === null || _a === void 0 ? void 0 : _a.setViewOnly(viewOnly);
+    };
+    ShareDBMonaco.prototype.setModelUri = function (uri) {
+        var _a;
+        var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath;
+        var newModel = monaco_editor_1.editor.createModel(model.getValue(), model.getLanguageId(), uri);
+        // const { fsPath } = uri; // \\filename
+        // const formatted = uri.toString(); // file:///filename
+        /* const editStacks = model._commandManager._undoRedoService._editStacks
+
+        const newEditStacks = new Map()
+
+        function adjustEditStack(c) {
+            c.actual.model = newModel
+            c.resourceLabel = fsPath
+            c.resourceLabels = [fsPath]
+            c.strResource = formatted
+            c.strResources = [formatted]
+        }
+
+        editStacks.forEach((s) => {
+            s.resourceLabel = fsPath
+            s.strResource = formatted
+
+            s._future.forEach(adjustEditStack)
+            s._past.forEach(adjustEditStack)
+
+            newEditStacks.set(formatted, s)
+        })
+
+        newModel._commandManager._undoRedoService._editStacks = newEditStacks */
+        model.dispose();
+        var editors = Array.from(this.editors.values());
+        var cursors = editors.map(function (e) { return e.getPosition(); });
+        this.editors.forEach(function (e) { return e.setModel(newModel); });
+        cursors.forEach(function (pos, i) { return !pos || editors[i].setPosition(pos); });
+        (_a = this.binding) === null || _a === void 0 ? void 0 : _a.unlisten();
+        this.binding = new bindings_1.default({
+            model: newModel, path: sharePath,
+            doc: doc,
+            viewOnly: viewOnly,
+            parent: this,
+        });
+        return newModel;
+    };
     // Attach editor to ShareDB model
     ShareDBMonaco.prototype.add = function (codeEditor, options) {
         if (this.connection.state === 'disconnected')
@@ -93,7 +171,7 @@ var ShareDBMonaco = /** @class */ (function () {
     ShareDBMonaco.prototype.resume = function () {
         var _this = this;
         var _a = this, connection = _a.connection, namespace = _a.namespace, id = _a.id, binding = _a.binding;
-        this.doc = connection.get(namespace, id);
+        this._doc = connection.get(namespace, id);
         this.doc.subscribe(function (err) {
             if (err)
                 throw err;

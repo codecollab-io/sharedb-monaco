@@ -21,9 +21,11 @@
     ],
     "rules": {
         "consistent-return": "off",
+        "no-underscore-dangle": "off",
         "padded-blocks": [
             "error",
-            "always"
+            "always",
+            { "allowSingleLineBlocks": true }
         ],
         "indent": [
             "error",
