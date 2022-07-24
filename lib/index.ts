@@ -10,7 +10,7 @@
 import WebSocket from 'reconnecting-websocket';
 import sharedb from 'sharedb/lib/client';
 import type { Socket } from 'sharedb/lib/sharedb';
-import { editor, Uri } from 'monaco-editor';
+import * as monaco from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 import Bindings from './bindings';
 
@@ -18,7 +18,7 @@ class ShareDBMonaco {
 
     WS?: WebSocket;
 
-    private model: editor.ITextModel;
+    private model: monaco.editor.ITextModel;
 
     private connection: sharedb.Connection;
 
@@ -30,7 +30,7 @@ class ShareDBMonaco {
 
     private _id: string;
 
-    private _editors: Map<string, editor.ICodeEditor> = new Map();
+    private _editors: Map<string, monaco.editor.ICodeEditor> = new Map();
 
     private _doc: sharedb.Doc;
 
@@ -81,7 +81,7 @@ class ShareDBMonaco {
         const doc = connection.get(opts.namespace, opts.id);
 
         this.connection = connection;
-        this.model = editor.createModel('', undefined, uri);
+        this.model = monaco.editor.createModel('', undefined, uri);
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
@@ -108,11 +108,11 @@ class ShareDBMonaco {
 
     }
 
-    setModelUri(uri: Uri) {
+    setModelUri(uri: monaco.Uri) {
 
         const { model, doc, viewOnly, sharePath } = this;
 
-        const newModel = editor.createModel(model.getValue(), model.getLanguageId(), uri);
+        const newModel = monaco.editor.createModel(model.getValue(), model.getLanguageId(), uri);
 
         // const { fsPath } = uri; // \\filename
         // const formatted = uri.toString(); // file:///filename
@@ -158,14 +158,20 @@ class ShareDBMonaco {
     }
 
     // Attach editor to ShareDB model
-    add(codeEditor: editor.ICodeEditor, options?: AttachOptions): editor.ITextModel {
+    add(codeEditor: monaco.editor.ICodeEditor, options?: AttachOptions): monaco.editor.ITextModel {
 
         if (this.connection.state === 'disconnected') throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
         if (this.editors.size === 0) this.resume();
 
         // Set model language
-        if (options?.langId) editor.setModelLanguage(this.model, options.langId);
-        else if (options?.model) editor.setModelLanguage(this.model, options.model.getLanguageId());
+        if (options) {
+
+            const { langId, model } = options;
+
+            if (langId) monaco.editor.setModelLanguage(this.model, langId);
+            else if (model) monaco.editor.setModelLanguage(this.model, model.getLanguageId());
+
+        }
 
         codeEditor.setModel(this.model);
 

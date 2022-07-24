@@ -61,6 +61,8 @@ Parameters:
 
 `close()`: Closes the ShareDB and WebSocket connections between the server and this ShareDBMonaco instance. Also detaches any listeners on the editor.
 
+#### Usage with Next.JS
+Any component that uses this module needs to be dynamically loaded with `{ ssr: false }` set. This is due to an issue with the monaco editor requiring access to the `navigator` object that doesn't exist when the module is loaded on the server.
 
 ## License
 [MIT](https://github.com/codecollab-io/sharedb-monaco/blob/master/LICENSE)

@@ -5,7 +5,7 @@
  * @license MIT
  */
 
-import { editor as IEditorTypes, Position, Range } from 'monaco-editor';
+import * as monaco from 'monaco-editor';
 import sharedb from 'sharedb/lib/client';
 import ShareDBMonaco from '.';
 import type { BindingsOptions } from './types';
@@ -18,7 +18,7 @@ class Bindings {
 
     private doc: sharedb.Doc;
 
-    private _model: IEditorTypes.ITextModel;
+    private _model: monaco.editor.ITextModel;
 
     private lastValue: string;
 
@@ -28,7 +28,7 @@ class Bindings {
 
     get model() { return this._model; }
 
-    set model(model: IEditorTypes.ITextModel) {
+    set model(model: monaco.editor.ITextModel) {
 
         const editors = Array.from(this.parent.editors.values());
         const cursors = editors.map((editor) => editor.getPosition());
@@ -107,7 +107,7 @@ class Bindings {
     }
 
     // Transform monaco content change delta to ShareDB Operation.
-    deltaTransform(delta: IEditorTypes.IModelContentChange) {
+    deltaTransform(delta: monaco.editor.IModelContentChange) {
 
         const { rangeOffset: offset, rangeLength: length, text } = delta;
 
@@ -168,13 +168,14 @@ class Bindings {
             const pos = model.getPositionAt(index);
             const start = pos;
 
-            const edits: Array<IEditorTypes.IIdentifiedSingleEditOperation> = [];
+            const edits: Array<monaco.editor.IIdentifiedSingleEditOperation> = [];
 
             if ('sd' in op) {
 
-                const end = model.getPositionAt(index + op.sd.length);
+                const { lineNumber, column } = model.getPositionAt(index + op.sd.length);
+                const range = new monaco.Range(start.lineNumber, start.column, lineNumber, column);
                 edits.push({
-                    range: new Range(start.lineNumber, start.column, end.lineNumber, end.column),
+                    range,
                     text: '',
                     forceMoveMarkers: true,
                 });
@@ -183,7 +184,7 @@ class Bindings {
 
             if ('si' in op) {
 
-                const insertRange = new Range(
+                const insertRange = new monaco.Range(
                     start.lineNumber,
                     start.column,
                     start.lineNumber,
@@ -241,7 +242,7 @@ class Bindings {
     }
 
     // Handles local editor change events
-    onLocalChange(delta: IEditorTypes.IModelContentChangedEvent) {
+    onLocalChange(delta: monaco.editor.IModelContentChangedEvent) {
 
         if (this.suppress) return;
 
@@ -256,7 +257,7 @@ class Bindings {
             if (this.model.getValue() !== this.doc.data[this.path]) {
 
                 this.suppress = true;
-                const cursors: Array<Position | null> = [];
+                const cursors: Array<monaco.Position | null> = [];
                 const editors = Array.from(this.parent.editors.values());
 
                 editors.forEach((editor) => cursors.push(editor.getPosition()));

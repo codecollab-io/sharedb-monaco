@@ -7,13 +7,36 @@
  * @author Carl Ian Voller <carlvoller8@gmail.com>
  * @license MIT
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var reconnecting_websocket_1 = __importDefault(require("reconnecting-websocket"));
 var client_1 = __importDefault(require("sharedb/lib/client"));
-var monaco_editor_1 = require("monaco-editor");
+var monaco = __importStar(require("monaco-editor"));
 var bindings_1 = __importDefault(require("./bindings"));
 var ShareDBMonaco = /** @class */ (function () {
     /**
@@ -48,7 +71,7 @@ var ShareDBMonaco = /** @class */ (function () {
         // Get ShareDB Doc
         var doc = connection.get(opts.namespace, opts.id);
         this.connection = connection;
-        this.model = monaco_editor_1.editor.createModel('', undefined, uri);
+        this.model = monaco.editor.createModel('', undefined, uri);
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
@@ -104,7 +127,7 @@ var ShareDBMonaco = /** @class */ (function () {
     ShareDBMonaco.prototype.setModelUri = function (uri) {
         var _a;
         var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath;
-        var newModel = monaco_editor_1.editor.createModel(model.getValue(), model.getLanguageId(), uri);
+        var newModel = monaco.editor.createModel(model.getValue(), model.getLanguageId(), uri);
         // const { fsPath } = uri; // \\filename
         // const formatted = uri.toString(); // file:///filename
         /* const editStacks = model._commandManager._undoRedoService._editStacks
@@ -151,10 +174,13 @@ var ShareDBMonaco = /** @class */ (function () {
         if (this.editors.size === 0)
             this.resume();
         // Set model language
-        if (options === null || options === void 0 ? void 0 : options.langId)
-            monaco_editor_1.editor.setModelLanguage(this.model, options.langId);
-        else if (options === null || options === void 0 ? void 0 : options.model)
-            monaco_editor_1.editor.setModelLanguage(this.model, options.model.getLanguageId());
+        if (options) {
+            var langId = options.langId, model = options.model;
+            if (langId)
+                monaco.editor.setModelLanguage(this.model, langId);
+            else if (model)
+                monaco.editor.setModelLanguage(this.model, model.getLanguageId());
+        }
         codeEditor.setModel(this.model);
         if (!this.editors.has(codeEditor.getId()))
             this.editors.set(codeEditor.getId(), codeEditor);

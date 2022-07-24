@@ -8,7 +8,7 @@
  */
 import WebSocket from 'reconnecting-websocket';
 import sharedb from 'sharedb/lib/client';
-import { editor, Uri } from 'monaco-editor';
+import * as monaco from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 declare class ShareDBMonaco {
     WS?: WebSocket;
@@ -24,7 +24,7 @@ declare class ShareDBMonaco {
     get viewOnly(): boolean;
     get namespace(): string;
     get id(): string;
-    get editors(): Map<string, editor.ICodeEditor>;
+    get editors(): Map<string, monaco.editor.ICodeEditor>;
     get doc(): sharedb.Doc<any>;
     get sharePath(): string;
     /**
@@ -40,8 +40,8 @@ declare class ShareDBMonaco {
      */
     constructor(opts: ShareDBMonacoOptions);
     setViewOnly(viewOnly: boolean): void;
-    setModelUri(uri: Uri): editor.ITextModel;
-    add(codeEditor: editor.ICodeEditor, options?: AttachOptions): editor.ITextModel;
+    setModelUri(uri: monaco.Uri): monaco.editor.ITextModel;
+    add(codeEditor: monaco.editor.ICodeEditor, options?: AttachOptions): monaco.editor.ITextModel;
     private pause;
     private resume;
     remove(id: string): void;
