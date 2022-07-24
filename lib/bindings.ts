@@ -5,10 +5,11 @@
  * @license MIT
  */
 
-import * as monaco from 'monaco-editor';
+import type monaco from 'monaco-editor';
 import sharedb from 'sharedb/lib/client';
 import ShareDBMonaco from '.';
 import type { BindingsOptions } from './types';
+import { Range } from './api';
 
 class Bindings {
 
@@ -173,7 +174,7 @@ class Bindings {
             if ('sd' in op) {
 
                 const { lineNumber, column } = model.getPositionAt(index + op.sd.length);
-                const range = new monaco.Range(start.lineNumber, start.column, lineNumber, column);
+                const range = new Range(start.lineNumber, start.column, lineNumber, column);
                 edits.push({
                     range,
                     text: '',
@@ -184,7 +185,7 @@ class Bindings {
 
             if ('si' in op) {
 
-                const insertRange = new monaco.Range(
+                const insertRange = new Range(
                     start.lineNumber,
                     start.column,
                     start.lineNumber,

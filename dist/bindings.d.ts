@@ -4,7 +4,7 @@
  * @author Carl Voller <carlvoller8@gmail.com>
  * @license MIT
  */
-import * as monaco from 'monaco-editor';
+import type monaco from 'monaco-editor';
 import sharedb from 'sharedb/lib/client';
 import type { BindingsOptions } from './types';
 declare class Bindings {

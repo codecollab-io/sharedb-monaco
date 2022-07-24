@@ -8,12 +8,13 @@
  */
 import WebSocket from 'reconnecting-websocket';
 import sharedb from 'sharedb/lib/client';
-import * as monaco from 'monaco-editor';
+import type monaco from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 declare class ShareDBMonaco {
     WS?: WebSocket;
     private model;
     private connection;
+    private monaco?;
     private binding?;
     private _viewOnly;
     private _namespace;
@@ -34,6 +35,7 @@ declare class ShareDBMonaco {
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance

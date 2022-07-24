@@ -10,7 +10,7 @@
 import WebSocket from 'reconnecting-websocket';
 import sharedb from 'sharedb/lib/client';
 import type { Socket } from 'sharedb/lib/sharedb';
-import * as monaco from 'monaco-editor';
+import type monaco from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 import Bindings from './bindings';
 
@@ -21,6 +21,8 @@ class ShareDBMonaco {
     private model: monaco.editor.ITextModel;
 
     private connection: sharedb.Connection;
+
+    private monaco?: typeof monaco;
 
     private binding?: Bindings;
 
@@ -55,13 +57,14 @@ class ShareDBMonaco {
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions) {
 
-        const { id, namespace, sharePath, viewOnly, uri } = opts;
+        const { id, namespace, sharePath, viewOnly } = opts;
 
         // Parameter checks
         if (!id) throw new Error("'id' is required but not provided");
@@ -81,7 +84,14 @@ class ShareDBMonaco {
         const doc = connection.get(opts.namespace, opts.id);
 
         this.connection = connection;
-        this.model = monaco.editor.createModel('', undefined, uri);
+
+        if ('monaco' in opts) {
+
+            this.monaco = opts.monaco;
+            this.model = opts.monaco.editor.createModel('', undefined, opts.uri);
+
+        } else this.model = opts.model;
+
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
@@ -110,9 +120,11 @@ class ShareDBMonaco {
 
     setModelUri(uri: monaco.Uri) {
 
-        const { model, doc, viewOnly, sharePath } = this;
+        const { model, doc, viewOnly, sharePath, monaco: m } = this;
 
-        const newModel = monaco.editor.createModel(model.getValue(), model.getLanguageId(), uri);
+        if (!m) throw new Error("This method is only available if 'monaco' was set on instantiation.");
+
+        const newModel = m.editor.createModel(model.getValue(), model.getLanguageId(), uri);
 
         // const { fsPath } = uri; // \\filename
         // const formatted = uri.toString(); // file:///filename
@@ -161,15 +173,16 @@ class ShareDBMonaco {
     add(codeEditor: monaco.editor.ICodeEditor, options?: AttachOptions): monaco.editor.ITextModel {
 
         if (this.connection.state === 'disconnected') throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
+        if (options && !this.monaco) console.warn("Supplying options to this function without passing 'monaco' in instantiation will have no effect.");
         if (this.editors.size === 0) this.resume();
 
         // Set model language
-        if (options) {
+        if (options && this.monaco) {
 
             const { langId, model } = options;
 
-            if (langId) monaco.editor.setModelLanguage(this.model, langId);
-            else if (model) monaco.editor.setModelLanguage(this.model, model.getLanguageId());
+            if (langId) this.monaco.editor.setModelLanguage(this.model, langId);
+            else if (model) this.monaco.editor.setModelLanguage(this.model, model.getLanguageId());
 
         }
 

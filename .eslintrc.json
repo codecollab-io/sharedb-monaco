@@ -20,6 +20,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "no-console": ["error", { "allow": ["warn"] }],
         "consistent-return": "off",
         "no-underscore-dangle": "off",
         "padded-blocks": [

@@ -7,36 +7,12 @@
  * @author Carl Ian Voller <carlvoller8@gmail.com>
  * @license MIT
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var reconnecting_websocket_1 = __importDefault(require("reconnecting-websocket"));
 var client_1 = __importDefault(require("sharedb/lib/client"));
-var monaco = __importStar(require("monaco-editor"));
 var bindings_1 = __importDefault(require("./bindings"));
 var ShareDBMonaco = /** @class */ (function () {
     /**
@@ -46,6 +22,7 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
@@ -53,7 +30,7 @@ var ShareDBMonaco = /** @class */ (function () {
     function ShareDBMonaco(opts) {
         var _this = this;
         this._editors = new Map();
-        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, viewOnly = opts.viewOnly, uri = opts.uri;
+        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, viewOnly = opts.viewOnly;
         // Parameter checks
         if (!id)
             throw new Error("'id' is required but not provided");
@@ -71,7 +48,12 @@ var ShareDBMonaco = /** @class */ (function () {
         // Get ShareDB Doc
         var doc = connection.get(opts.namespace, opts.id);
         this.connection = connection;
-        this.model = monaco.editor.createModel('', undefined, uri);
+        if ('monaco' in opts) {
+            this.monaco = opts.monaco;
+            this.model = opts.monaco.editor.createModel('', undefined, opts.uri);
+        }
+        else
+            this.model = opts.model;
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
@@ -126,8 +108,10 @@ var ShareDBMonaco = /** @class */ (function () {
     };
     ShareDBMonaco.prototype.setModelUri = function (uri) {
         var _a;
-        var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath;
-        var newModel = monaco.editor.createModel(model.getValue(), model.getLanguageId(), uri);
+        var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath, m = _b.monaco;
+        if (!m)
+            throw new Error("This method is only available if 'monaco' was set on instantiation.");
+        var newModel = m.editor.createModel(model.getValue(), model.getLanguageId(), uri);
         // const { fsPath } = uri; // \\filename
         // const formatted = uri.toString(); // file:///filename
         /* const editStacks = model._commandManager._undoRedoService._editStacks
@@ -171,15 +155,17 @@ var ShareDBMonaco = /** @class */ (function () {
     ShareDBMonaco.prototype.add = function (codeEditor, options) {
         if (this.connection.state === 'disconnected')
             throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
+        if (options && !this.monaco)
+            console.warn("Supplying options to this function without passing 'monaco' in instantiation will have no effect.");
         if (this.editors.size === 0)
             this.resume();
         // Set model language
-        if (options) {
+        if (options && this.monaco) {
             var langId = options.langId, model = options.model;
             if (langId)
-                monaco.editor.setModelLanguage(this.model, langId);
+                this.monaco.editor.setModelLanguage(this.model, langId);
             else if (model)
-                monaco.editor.setModelLanguage(this.model, model.getLanguageId());
+                this.monaco.editor.setModelLanguage(this.model, model.getLanguageId());
         }
         codeEditor.setModel(this.model);
         if (!this.editors.has(codeEditor.getId()))

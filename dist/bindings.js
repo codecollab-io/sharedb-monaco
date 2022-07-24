@@ -5,31 +5,8 @@
  * @author Carl Voller <carlvoller8@gmail.com>
  * @license MIT
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var monaco = __importStar(require("monaco-editor"));
+var api_1 = require("./api");
 var Bindings = /** @class */ (function () {
     function Bindings(options) {
         this.suppress = false;
@@ -139,7 +116,7 @@ var Bindings = /** @class */ (function () {
             var edits = [];
             if ('sd' in op) {
                 var _b = model.getPositionAt(index + op.sd.length), lineNumber = _b.lineNumber, column = _b.column;
-                var range = new monaco.Range(start.lineNumber, start.column, lineNumber, column);
+                var range = new api_1.Range(start.lineNumber, start.column, lineNumber, column);
                 edits.push({
                     range: range,
                     text: '',
@@ -147,7 +124,7 @@ var Bindings = /** @class */ (function () {
                 });
             }
             if ('si' in op) {
-                var insertRange = new monaco.Range(start.lineNumber, start.column, start.lineNumber, start.column);
+                var insertRange = new api_1.Range(start.lineNumber, start.column, start.lineNumber, start.column);
                 edits.push({
                     range: insertRange,
                     text: op.si,
