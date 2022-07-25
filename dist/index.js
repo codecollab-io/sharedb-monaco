@@ -161,7 +161,9 @@ var ShareDBMonaco = /** @class */ (function () {
             this.resume();
         // Set model language
         if (options && this.monaco) {
-            var langId = options.langId, model = options.model;
+            var langId = options.langId, model = options.model, uri = options.uri;
+            if (uri && uri.path !== this.model.uri.path)
+                this.setModelUri(uri);
             if (langId)
                 this.monaco.editor.setModelLanguage(this.model, langId);
             else if (model)

@@ -29,6 +29,7 @@ export type ShareDBMonacoOptions = ({
 export type AttachOptions = {
     model?: monaco.editor.ITextModel;
     langId?: string;
+    uri?: monaco.Uri;
 }
 
 export interface BindingsOptions {
