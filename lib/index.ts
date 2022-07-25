@@ -137,7 +137,18 @@ class ShareDBMonaco {
         const { model, doc, viewOnly, sharePath, monaco: m } = this;
 
         if (!m) throw new Error("This method is only available if 'monaco' was set on instantiation.");
-        if (uri.path === this.model.uri.path) return this.model;
+
+        // Only set new model language, do not replace model if uri is the same
+        if (uri.path === this.model.uri.path) {
+
+            const tempModel = m.editor.createModel('', '', uri);
+            const lang = tempModel.getLanguageId();
+            m.editor.setModelLanguage(this.model, lang);
+            tempModel.dispose();
+
+            return this.model;
+
+        }
 
         const newModel = m.editor.createModel(model.getValue(), undefined, uri);
 
