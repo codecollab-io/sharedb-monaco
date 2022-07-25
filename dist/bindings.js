@@ -170,10 +170,12 @@ var Bindings = /** @class */ (function () {
     // Handles local editor change events
     Bindings.prototype.onLocalChange = function (delta) {
         var _this = this;
+        console.log(delta, this.suppress);
         if (this.suppress)
             return;
         var ops = [];
         delta.changes.forEach(function (change) { return ops.concat(_this.deltaTransform(change)); });
+        console.log(ops);
         this.lastValue = this.model.getValue();
         this.doc.submitOp(ops, { source: true }, function (err) {
             if (err)

@@ -241,6 +241,7 @@ class ShareDBMonaco {
 
         this.doc.destroy();
         this.binding?.unlisten();
+        this.model.dispose();
 
         // If connection was opened by this instance, close it.
         if (this.WS) {

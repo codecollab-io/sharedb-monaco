@@ -209,6 +209,7 @@ var ShareDBMonaco = /** @class */ (function () {
         var _a, _b;
         this.doc.destroy();
         (_a = this.binding) === null || _a === void 0 ? void 0 : _a.unlisten();
+        this.model.dispose();
         // If connection was opened by this instance, close it.
         if (this.WS) {
             (_b = this.WS) === null || _b === void 0 ? void 0 : _b.close();

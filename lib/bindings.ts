@@ -245,10 +245,12 @@ class Bindings {
     // Handles local editor change events
     onLocalChange(delta: monaco.editor.IModelContentChangedEvent) {
 
+        console.log(delta, this.suppress);
         if (this.suppress) return;
 
         const ops: Array<any> = [];
         delta.changes.forEach((change) => ops.concat(this.deltaTransform(change)));
+        console.log(ops);
 
         this.lastValue = this.model.getValue();
 
