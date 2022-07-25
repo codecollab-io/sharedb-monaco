@@ -126,6 +126,8 @@ var ShareDBMonaco = /** @class */ (function () {
         var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath, m = _b.monaco;
         if (!m)
             throw new Error("This method is only available if 'monaco' was set on instantiation.");
+        if (uri.path === this.model.uri.path)
+            return this.model;
         var newModel = m.editor.createModel(model.getValue(), undefined, uri);
         model.dispose();
         var editors = Array.from(this.editors.values());
