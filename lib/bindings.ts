@@ -113,11 +113,13 @@ class Bindings {
         const { rangeOffset: offset, rangeLength: length, text } = delta;
 
         let op: Array<any>;
+        console.log(offset, length, text);
         if (text.length > 0 && length === 0) op = this.getInsertOp(offset, text);
         else if (text.length > 0 && length > 0) op = this.getReplaceOp(offset, length, text);
         else if (text.length === 0 && length > 0) op = this.getDeleteOp(offset, length);
         else throw new Error(`Unexpected change: ${JSON.stringify(delta)}`);
 
+        console.log("121: ", op);
         return op;
 
     }
@@ -249,6 +251,7 @@ class Bindings {
         if (this.suppress) return;
 
         const ops: Array<any> = [];
+        console.log(this.deltaTransform(delta.changes[0]));
         delta.changes.forEach((change) => ops.concat(this.deltaTransform(change)));
         console.log(ops);
 
