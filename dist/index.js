@@ -128,7 +128,7 @@ var ShareDBMonaco = /** @class */ (function () {
             throw new Error("This method is only available if 'monaco' was set on instantiation.");
         // Only set new model language, do not replace model if uri is the same
         if (uri.path === this.model.uri.path) {
-            var tempModel = m.editor.createModel('', '', uri);
+            var tempModel = m.editor.createModel('', '', m.Uri.file("".concat(Date.now(), "/").concat(uri.path)));
             var lang = tempModel.getLanguageId();
             m.editor.setModelLanguage(this.model, lang);
             tempModel.dispose();

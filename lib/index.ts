@@ -141,7 +141,7 @@ class ShareDBMonaco {
         // Only set new model language, do not replace model if uri is the same
         if (uri.path === this.model.uri.path) {
 
-            const tempModel = m.editor.createModel('', '', uri);
+            const tempModel = m.editor.createModel('', '', m.Uri.file(`${Date.now()}/${uri.path}`));
             const lang = tempModel.getLanguageId();
             m.editor.setModelLanguage(this.model, lang);
             tempModel.dispose();
