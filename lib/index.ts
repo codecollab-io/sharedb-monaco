@@ -134,7 +134,7 @@ class ShareDBMonaco {
      */
     setModelUri(uri: monaco.Uri): monaco.editor.ITextModel {
 
-        const { model, doc, viewOnly, sharePath, monaco: m } = this;
+        const { model, monaco: m } = this;
 
         if (!m) throw new Error("This method is only available if 'monaco' was set on instantiation.");
 
@@ -159,10 +159,7 @@ class ShareDBMonaco {
         this.editors.forEach((e) => e.setModel(newModel));
         cursors.forEach((pos, i) => !pos || editors[i].setPosition(pos));
 
-        this.binding?.unlisten();
-        this.binding = new Bindings({
-            model: newModel, path: sharePath, doc, viewOnly, parent: this,
-        });
+        if (this.binding) this.binding.model = newModel;
 
         this.model = newModel;
 
@@ -270,6 +267,7 @@ class ShareDBMonaco {
         this.pause();
         this.model.dispose();
         this.editors.forEach((e) => e.setModel(null));
+        this.editors.clear();
 
         // If connection was opened by this instance, close it.
         if (this.WS) {

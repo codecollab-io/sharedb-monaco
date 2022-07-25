@@ -122,8 +122,7 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {monaco.Uri} uri - Set the Uri for the internal monaco model.
      */
     ShareDBMonaco.prototype.setModelUri = function (uri) {
-        var _a;
-        var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath, m = _b.monaco;
+        var _a = this, model = _a.model, m = _a.monaco;
         if (!m)
             throw new Error("This method is only available if 'monaco' was set on instantiation.");
         // Only set new model language, do not replace model if uri is the same
@@ -140,13 +139,8 @@ var ShareDBMonaco = /** @class */ (function () {
         var cursors = editors.map(function (e) { return e.getPosition(); });
         this.editors.forEach(function (e) { return e.setModel(newModel); });
         cursors.forEach(function (pos, i) { return !pos || editors[i].setPosition(pos); });
-        (_a = this.binding) === null || _a === void 0 ? void 0 : _a.unlisten();
-        this.binding = new bindings_1.default({
-            model: newModel, path: sharePath,
-            doc: doc,
-            viewOnly: viewOnly,
-            parent: this,
-        });
+        if (this.binding)
+            this.binding.model = newModel;
         this.model = newModel;
         return newModel;
     };
@@ -234,6 +228,7 @@ var ShareDBMonaco = /** @class */ (function () {
         this.pause();
         this.model.dispose();
         this.editors.forEach(function (e) { return e.setModel(null); });
+        this.editors.clear();
         // If connection was opened by this instance, close it.
         if (this.WS) {
             (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
