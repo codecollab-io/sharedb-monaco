@@ -70,7 +70,6 @@ var Bindings = /** @class */ (function () {
     Bindings.prototype.deltaTransform = function (delta) {
         var offset = delta.rangeOffset, length = delta.rangeLength, text = delta.text;
         var op;
-        console.log(offset, length, text);
         if (text.length > 0 && length === 0)
             op = this.getInsertOp(offset, text);
         else if (text.length > 0 && length > 0)
@@ -79,7 +78,6 @@ var Bindings = /** @class */ (function () {
             op = this.getDeleteOp(offset, length);
         else
             throw new Error("Unexpected change: ".concat(JSON.stringify(delta)));
-        console.log("121: ", op);
         return op;
     };
     // Converts insert operation into json0 (sharedb-op)
@@ -172,13 +170,9 @@ var Bindings = /** @class */ (function () {
     // Handles local editor change events
     Bindings.prototype.onLocalChange = function (delta) {
         var _this = this;
-        console.log(delta, this.suppress);
         if (this.suppress)
             return;
-        var ops = [];
-        console.log(this.deltaTransform(delta.changes[0]));
-        delta.changes.forEach(function (change) { return ops.concat(_this.deltaTransform(change)); });
-        console.log(ops);
+        var ops = delta.changes.map(function (change) { return _this.deltaTransform(change); }).flat();
         this.lastValue = this.model.getValue();
         this.doc.submitOp(ops, { source: true }, function (err) {
             if (err)
