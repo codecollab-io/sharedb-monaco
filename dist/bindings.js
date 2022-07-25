@@ -28,8 +28,10 @@ var Bindings = /** @class */ (function () {
             var editors = Array.from(this.parent.editors.values());
             var cursors = editors.map(function (editor) { return editor.getPosition(); });
             this._model = model;
+            this.suppress = true;
             this.unlisten();
             this.listen();
+            this.suppress = false;
             cursors.forEach(function (pos, i) { return !pos || editors[i].setPosition(pos); });
         },
         enumerable: false,

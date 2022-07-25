@@ -34,8 +34,10 @@ class Bindings {
         const editors = Array.from(this.parent.editors.values());
         const cursors = editors.map((editor) => editor.getPosition());
         this._model = model;
+        this.suppress = true;
         this.unlisten();
         this.listen();
+        this.suppress = false;
         cursors.forEach((pos, i) => !pos || editors[i].setPosition(pos));
 
     }
