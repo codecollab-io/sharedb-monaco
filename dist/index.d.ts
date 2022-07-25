@@ -35,6 +35,7 @@ declare class ShareDBMonaco {
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {string} opts.loadingText (Optional) - Text to show while ShareDB is loading
      * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API

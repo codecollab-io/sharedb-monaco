@@ -12,11 +12,13 @@ export type ShareDBMonacoOptions = ({
     namespace: string;
     sharePath: string;
     viewOnly: boolean;
+    loadingText?: string;
     wsurl: string;
 } | {
     id: string;
     namespace: string;
     sharePath: string;
+    loadingText?: string;
     viewOnly: boolean;
     connection: sharedb.Connection;
 }) & ({

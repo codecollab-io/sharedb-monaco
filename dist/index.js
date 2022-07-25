@@ -22,6 +22,7 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {string} opts.namespace - ShareDB document namespace
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
+     * @param {string} opts.loadingText (Optional) - Text to show while ShareDB is loading
      * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
@@ -30,7 +31,7 @@ var ShareDBMonaco = /** @class */ (function () {
     function ShareDBMonaco(opts) {
         var _this = this;
         this._editors = new Map();
-        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, viewOnly = opts.viewOnly;
+        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, viewOnly = opts.viewOnly, loadingText = opts.loadingText;
         // Parameter checks
         if (!id)
             throw new Error("'id' is required but not provided");
@@ -50,7 +51,10 @@ var ShareDBMonaco = /** @class */ (function () {
         this.connection = connection;
         if ('monaco' in opts) {
             this.monaco = opts.monaco;
-            this.model = opts.monaco.editor.createModel('', undefined, opts.uri);
+            if (opts.uri)
+                this.model = opts.monaco.editor.getModel(opts.uri) || opts.monaco.editor.createModel('', undefined, opts.uri);
+            else
+                this.model = opts.monaco.editor.createModel(loadingText || 'Loading...');
         }
         else
             this.model = opts.model;
