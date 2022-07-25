@@ -115,46 +115,30 @@ class ShareDBMonaco {
 
     }
 
+    /**
+     * Toggles the View-Only state of the bindings.
+     * When set to true, will not publish any local changes
+     * @param {boolean} viewOnly - Set to true to set to View-Only mode
+     */
     setViewOnly(viewOnly: boolean) {
 
         this.binding?.setViewOnly(viewOnly);
 
     }
 
-    setModelUri(uri: monaco.Uri) {
+    /**
+     * Sets the Uri for the internal monaco model.
+     * This will override any previously set language using setLangId
+     * and will infer the new language from the uri.
+     * @param {monaco.Uri} uri - Set the Uri for the internal monaco model.
+     */
+    setModelUri(uri: monaco.Uri): monaco.editor.ITextModel {
 
         const { model, doc, viewOnly, sharePath, monaco: m } = this;
 
         if (!m) throw new Error("This method is only available if 'monaco' was set on instantiation.");
 
-        const newModel = m.editor.createModel(model.getValue(), model.getLanguageId(), uri);
-
-        // const { fsPath } = uri; // \\filename
-        // const formatted = uri.toString(); // file:///filename
-
-        /* const editStacks = model._commandManager._undoRedoService._editStacks
-
-        const newEditStacks = new Map()
-
-        function adjustEditStack(c) {
-            c.actual.model = newModel
-            c.resourceLabel = fsPath
-            c.resourceLabels = [fsPath]
-            c.strResource = formatted
-            c.strResources = [formatted]
-        }
-
-        editStacks.forEach((s) => {
-            s.resourceLabel = fsPath
-            s.strResource = formatted
-
-            s._future.forEach(adjustEditStack)
-            s._past.forEach(adjustEditStack)
-
-            newEditStacks.set(formatted, s)
-        })
-
-        newModel._commandManager._undoRedoService._editStacks = newEditStacks */
+        const newModel = m.editor.createModel(model.getValue(), undefined, uri);
 
         model.dispose();
 
@@ -168,21 +152,43 @@ class ShareDBMonaco {
             model: newModel, path: sharePath, doc, viewOnly, parent: this,
         });
 
+        this.model = newModel;
+
         return newModel;
 
     }
 
-    // Attach editor to ShareDB model
-    add(codeEditor: monaco.editor.ICodeEditor, options?: AttachOptions): monaco.editor.ITextModel {
+    /**
+     * Sets the language of the internal monaco model
+     * @param {string} langId - The Language ID
+     */
+    setLangId(langId: string) {
+
+        if (!this.monaco) throw new Error("This method is only available if 'monaco' was set on instantiation.");
+        this.monaco.editor.setModelLanguage(this.model, langId);
+
+    }
+
+    /**
+     * Attach editor to ShareDB Monaco model
+     * If multiple language options are set, sharedb-monaco will prioritise them
+     * in the order of: opts.langId > opts.model > opts.uri
+     * @param {monaco.editor.ICodeEditor} codeEditor - The editor instance
+     * @param {AttachOptions} opts (Optional) - Language options
+     * @param {monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
+     * @param {string} opts.langId (Optional) - Set language mode with this id
+     * @param {monaco.Uri} opts.uri (Optional) - Override existing model Uri
+     */
+    add(codeEditor: monaco.editor.ICodeEditor, opts?: AttachOptions): monaco.editor.ITextModel {
 
         if (this.connection.state === 'disconnected') throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
-        if (options && !this.monaco) console.warn("Supplying options to this function without passing 'monaco' in instantiation will have no effect.");
+        if (opts && !this.monaco) console.warn("Supplying options to this function without passing 'monaco' in instantiation will have no effect.");
         if (this.editors.size === 0) this.resume();
 
         // Set model language
-        if (options && this.monaco) {
+        if (opts && this.monaco) {
 
-            const { langId, model, uri } = options;
+            const { langId, model, uri } = opts;
 
             if (uri && uri.path !== this.model.uri.path) this.setModelUri(uri);
 
@@ -198,7 +204,7 @@ class ShareDBMonaco {
 
     }
 
-    // Pause doc subscriptions
+    // Pause doc subscriptions to save bandwidth
     private pause() {
 
         this.binding?.pause();
@@ -225,7 +231,10 @@ class ShareDBMonaco {
 
     }
 
-    // Detach model from ShareDBMonaco
+    /**
+     * Detach model from ShareDBMonaco
+     * @param {string} id - Editor ID from ICodeEditor.getId()
+     */
     remove(id: string) {
 
         if (this.editors.has(id)) {
@@ -240,11 +249,15 @@ class ShareDBMonaco {
 
     }
 
+    /**
+     * Close model and clean up
+     * Will also close the connection if connection was created by sharedb-monaco
+     */
     close() {
 
-        this.doc.destroy();
-        this.binding?.unlisten();
+        this.pause();
         this.model.dispose();
+        this.editors.forEach((e) => e.setModel(null));
 
         // If connection was opened by this instance, close it.
         if (this.WS) {

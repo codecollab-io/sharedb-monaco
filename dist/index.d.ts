@@ -42,12 +42,46 @@ declare class ShareDBMonaco {
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
      */
     constructor(opts: ShareDBMonacoOptions);
+    /**
+     * Toggles the View-Only state of the bindings.
+     * When set to true, will not publish any local changes
+     * @param {boolean} viewOnly - Set to true to set to View-Only mode
+     */
     setViewOnly(viewOnly: boolean): void;
+    /**
+     * Sets the Uri for the internal monaco model.
+     * This will override any previously set language using setLangId
+     * and will infer the new language from the uri.
+     * @param {monaco.Uri} uri - Set the Uri for the internal monaco model.
+     */
     setModelUri(uri: monaco.Uri): monaco.editor.ITextModel;
-    add(codeEditor: monaco.editor.ICodeEditor, options?: AttachOptions): monaco.editor.ITextModel;
+    /**
+     * Sets the language of the internal monaco model
+     * @param {string} langId - The Language ID
+     */
+    setLangId(langId: string): void;
+    /**
+     * Attach editor to ShareDB Monaco model
+     * If multiple language options are set, sharedb-monaco will prioritise them
+     * in the order of: opts.langId > opts.model > opts.uri
+     * @param {monaco.editor.ICodeEditor} codeEditor - The editor instance
+     * @param {AttachOptions} opts (Optional) - Language options
+     * @param {monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
+     * @param {string} opts.langId (Optional) - Set language mode with this id
+     * @param {monaco.Uri} opts.uri (Optional) - Override existing model Uri
+     */
+    add(codeEditor: monaco.editor.ICodeEditor, opts?: AttachOptions): monaco.editor.ITextModel;
     private pause;
     private resume;
+    /**
+     * Detach model from ShareDBMonaco
+     * @param {string} id - Editor ID from ICodeEditor.getId()
+     */
     remove(id: string): void;
+    /**
+     * Close model and clean up
+     * Will also close the connection if connection was created by sharedb-monaco
+     */
     close(): void;
 }
 export default ShareDBMonaco;

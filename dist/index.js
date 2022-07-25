@@ -106,41 +106,27 @@ var ShareDBMonaco = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    /**
+     * Toggles the View-Only state of the bindings.
+     * When set to true, will not publish any local changes
+     * @param {boolean} viewOnly - Set to true to set to View-Only mode
+     */
     ShareDBMonaco.prototype.setViewOnly = function (viewOnly) {
         var _a;
         (_a = this.binding) === null || _a === void 0 ? void 0 : _a.setViewOnly(viewOnly);
     };
+    /**
+     * Sets the Uri for the internal monaco model.
+     * This will override any previously set language using setLangId
+     * and will infer the new language from the uri.
+     * @param {monaco.Uri} uri - Set the Uri for the internal monaco model.
+     */
     ShareDBMonaco.prototype.setModelUri = function (uri) {
         var _a;
         var _b = this, model = _b.model, doc = _b.doc, viewOnly = _b.viewOnly, sharePath = _b.sharePath, m = _b.monaco;
         if (!m)
             throw new Error("This method is only available if 'monaco' was set on instantiation.");
-        var newModel = m.editor.createModel(model.getValue(), model.getLanguageId(), uri);
-        // const { fsPath } = uri; // \\filename
-        // const formatted = uri.toString(); // file:///filename
-        /* const editStacks = model._commandManager._undoRedoService._editStacks
-
-        const newEditStacks = new Map()
-
-        function adjustEditStack(c) {
-            c.actual.model = newModel
-            c.resourceLabel = fsPath
-            c.resourceLabels = [fsPath]
-            c.strResource = formatted
-            c.strResources = [formatted]
-        }
-
-        editStacks.forEach((s) => {
-            s.resourceLabel = fsPath
-            s.strResource = formatted
-
-            s._future.forEach(adjustEditStack)
-            s._past.forEach(adjustEditStack)
-
-            newEditStacks.set(formatted, s)
-        })
-
-        newModel._commandManager._undoRedoService._editStacks = newEditStacks */
+        var newModel = m.editor.createModel(model.getValue(), undefined, uri);
         model.dispose();
         var editors = Array.from(this.editors.values());
         var cursors = editors.map(function (e) { return e.getPosition(); });
@@ -153,19 +139,38 @@ var ShareDBMonaco = /** @class */ (function () {
             viewOnly: viewOnly,
             parent: this,
         });
+        this.model = newModel;
         return newModel;
     };
-    // Attach editor to ShareDB model
-    ShareDBMonaco.prototype.add = function (codeEditor, options) {
+    /**
+     * Sets the language of the internal monaco model
+     * @param {string} langId - The Language ID
+     */
+    ShareDBMonaco.prototype.setLangId = function (langId) {
+        if (!this.monaco)
+            throw new Error("This method is only available if 'monaco' was set on instantiation.");
+        this.monaco.editor.setModelLanguage(this.model, langId);
+    };
+    /**
+     * Attach editor to ShareDB Monaco model
+     * If multiple language options are set, sharedb-monaco will prioritise them
+     * in the order of: opts.langId > opts.model > opts.uri
+     * @param {monaco.editor.ICodeEditor} codeEditor - The editor instance
+     * @param {AttachOptions} opts (Optional) - Language options
+     * @param {monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
+     * @param {string} opts.langId (Optional) - Set language mode with this id
+     * @param {monaco.Uri} opts.uri (Optional) - Override existing model Uri
+     */
+    ShareDBMonaco.prototype.add = function (codeEditor, opts) {
         if (this.connection.state === 'disconnected')
             throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
-        if (options && !this.monaco)
+        if (opts && !this.monaco)
             console.warn("Supplying options to this function without passing 'monaco' in instantiation will have no effect.");
         if (this.editors.size === 0)
             this.resume();
         // Set model language
-        if (options && this.monaco) {
-            var langId = options.langId, model = options.model, uri = options.uri;
+        if (opts && this.monaco) {
+            var langId = opts.langId, model = opts.model, uri = opts.uri;
             if (uri && uri.path !== this.model.uri.path)
                 this.setModelUri(uri);
             if (langId)
@@ -178,7 +183,7 @@ var ShareDBMonaco = /** @class */ (function () {
             this.editors.set(codeEditor.getId(), codeEditor);
         return this.model;
     };
-    // Pause doc subscriptions
+    // Pause doc subscriptions to save bandwidth
     ShareDBMonaco.prototype.pause = function () {
         var _this = this;
         var _a;
@@ -198,7 +203,10 @@ var ShareDBMonaco = /** @class */ (function () {
             binding === null || binding === void 0 ? void 0 : binding.resume(_this.doc);
         });
     };
-    // Detach model from ShareDBMonaco
+    /**
+     * Detach model from ShareDBMonaco
+     * @param {string} id - Editor ID from ICodeEditor.getId()
+     */
     ShareDBMonaco.prototype.remove = function (id) {
         if (this.editors.has(id)) {
             // Forced ! here cause typescript can't recognise I used the has() operator previously.
@@ -209,14 +217,18 @@ var ShareDBMonaco = /** @class */ (function () {
         if (this.editors.size === 0)
             this.pause();
     };
+    /**
+     * Close model and clean up
+     * Will also close the connection if connection was created by sharedb-monaco
+     */
     ShareDBMonaco.prototype.close = function () {
-        var _a, _b;
-        this.doc.destroy();
-        (_a = this.binding) === null || _a === void 0 ? void 0 : _a.unlisten();
+        var _a;
+        this.pause();
         this.model.dispose();
+        this.editors.forEach(function (e) { return e.setModel(null); });
         // If connection was opened by this instance, close it.
         if (this.WS) {
-            (_b = this.WS) === null || _b === void 0 ? void 0 : _b.close();
+            (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
             this.connection.close();
         }
     };
