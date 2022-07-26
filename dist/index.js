@@ -190,6 +190,16 @@ var ShareDBMonaco = /** @class */ (function () {
             editors.set(codeEditor.getId(), codeEditor);
         return this.model;
     };
+    /**
+     * @private
+     * Syncs or "wakes" document subscriptions.
+     * This method should not be used unless explicitly necessary
+     */
+    ShareDBMonaco.prototype.syncSubscriptions = function () {
+        var _a = this, editors = _a.editors, doc = _a.doc;
+        if (editors.size > 0 && !doc.subscribed)
+            this.resume();
+    };
     // Pause doc subscriptions to save bandwidth
     ShareDBMonaco.prototype.pause = function () {
         var _this = this;
@@ -200,14 +210,15 @@ var ShareDBMonaco = /** @class */ (function () {
     // Resume doc subscriptions
     ShareDBMonaco.prototype.resume = function () {
         var _this = this;
-        var _a = this, connection = _a.connection, namespace = _a.namespace, id = _a.id, binding = _a.binding;
+        var _a = this, connection = _a.connection, namespace = _a.namespace, id = _a.id;
         this._doc = connection.get(namespace, id);
         this.doc.subscribe(function (err) {
+            var _a;
             if (err)
                 throw err;
             if (_this.doc.type === null)
                 throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
-            binding === null || binding === void 0 ? void 0 : binding.resume(_this.doc);
+            (_a = _this.binding) === null || _a === void 0 ? void 0 : _a.resume(_this.doc);
         });
     };
     /**

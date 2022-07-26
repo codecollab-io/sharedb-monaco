@@ -220,6 +220,18 @@ class ShareDBMonaco {
 
     }
 
+    /**
+     * @private
+     * Syncs or "wakes" document subscriptions.
+     * This method should not be used unless explicitly necessary
+     */
+    syncSubscriptions() {
+
+        const { editors, doc } = this;
+        if (editors.size > 0 && !doc.subscribed) this.resume();
+
+    }
+
     // Pause doc subscriptions to save bandwidth
     private pause() {
 
@@ -231,7 +243,7 @@ class ShareDBMonaco {
     // Resume doc subscriptions
     private resume() {
 
-        const { connection, namespace, id, binding } = this;
+        const { connection, namespace, id } = this;
 
         this._doc = connection.get(namespace, id);
 
@@ -241,7 +253,7 @@ class ShareDBMonaco {
 
             if (this.doc.type === null) throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
 
-            binding?.resume(this.doc);
+            this.binding?.resume(this.doc);
 
         });
 

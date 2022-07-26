@@ -71,6 +71,12 @@ declare class ShareDBMonaco {
      * @param {Monaco.Uri} opts.uri (Optional) - Override existing model Uri
      */
     add(codeEditor: Monaco.editor.ICodeEditor, opts?: AttachOptions): Monaco.editor.ITextModel;
+    /**
+     * @private
+     * Syncs or "wakes" document subscriptions.
+     * This method should not be used unless explicitly necessary
+     */
+    syncSubscriptions(): void;
     private pause;
     private resume;
     /**

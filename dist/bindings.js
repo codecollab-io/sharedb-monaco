@@ -49,7 +49,6 @@ var Bindings = /** @class */ (function () {
     // Listen for both monaco editor changes and ShareDB changes
     Bindings.prototype.listen = function () {
         var _a;
-        console.log("LISTEN");
         var _b = this, viewOnly = _b.viewOnly, model = _b.model;
         (_a = this.listenerDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
         if (!viewOnly)
@@ -59,7 +58,6 @@ var Bindings = /** @class */ (function () {
     // Stop listening for changes
     Bindings.prototype.unlisten = function () {
         var _a;
-        console.log("UNLISTEN");
         if (!this.viewOnly)
             (_a = this.listenerDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
         this.doc.off('op', this.onRemoteChange);
@@ -180,10 +178,9 @@ var Bindings = /** @class */ (function () {
         var _this = this;
         if (this.suppress)
             return;
-        console.log("ONLOCALCHANGE");
-        console.log("DELTAS", delta.changes);
+        if (!this.doc.subscribed)
+            this.parent.syncSubscriptions();
         var ops = delta.changes.map(function (change) { return _this.deltaTransform(change); }).flat();
-        console.log(ops);
         this.lastValue = this.model.getValue();
         this.doc.submitOp(ops, { source: true }, function (err) {
             if (err)
@@ -202,7 +199,6 @@ var Bindings = /** @class */ (function () {
     };
     // Handles remote operations from ShareDB
     Bindings.prototype.onRemoteChange = function (ops, source) {
-        console.log("ONREMOTECHANGE");
         if (ops.length === 0)
             return;
         var opsPath = ops[0].p.slice(0, ops[0].p.length - 1).toString();
