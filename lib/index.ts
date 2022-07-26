@@ -233,10 +233,11 @@ class ShareDBMonaco {
     }
 
     // Pause doc subscriptions to save bandwidth
-    private pause() {
+    private async pause() {
 
         this.binding?.pause();
-        this.doc.unsubscribe(() => this.doc.destroy());
+
+        await new Promise((resolve) => this.doc.unsubscribe(() => this.doc.destroy(resolve)));
 
     }
 
@@ -257,9 +258,10 @@ class ShareDBMonaco {
 
     /**
      * Detach model from ShareDBMonaco
+     * @async
      * @param {string} id - Editor ID from ICodeEditor.getId()
      */
-    remove(id: string) {
+    async remove(id: string) {
 
         const { editors } = this;
 
@@ -271,7 +273,7 @@ class ShareDBMonaco {
             editors.delete(id);
 
         }
-        if (editors.size === 0) this.pause();
+        if (editors.size === 0) await this.pause();
 
     }
 

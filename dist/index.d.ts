@@ -81,9 +81,10 @@ declare class ShareDBMonaco {
     private resume;
     /**
      * Detach model from ShareDBMonaco
+     * @async
      * @param {string} id - Editor ID from ICodeEditor.getId()
      */
-    remove(id: string): void;
+    remove(id: string): Promise<void>;
     /**
      * Close model and clean up
      * Will also close the connection if connection was created by sharedb-monaco
