@@ -174,7 +174,9 @@ var Bindings = /** @class */ (function () {
         var _this = this;
         if (this.suppress)
             return;
+        console.log("DELTAS", delta.changes);
         var ops = delta.changes.map(function (change) { return _this.deltaTransform(change); }).flat();
+        console.log(ops);
         this.lastValue = this.model.getValue();
         this.doc.submitOp(ops, { source: true }, function (err) {
             if (err)

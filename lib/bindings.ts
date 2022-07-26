@@ -249,7 +249,11 @@ class Bindings {
 
         if (this.suppress) return;
 
+        console.log("DELTAS", delta.changes);
+
         const ops = delta.changes.map((change) => this.deltaTransform(change)).flat();
+
+        console.log(ops);
 
         this.lastValue = this.model.getValue();
 
