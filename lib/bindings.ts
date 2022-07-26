@@ -81,6 +81,8 @@ class Bindings {
     // Listen for both monaco editor changes and ShareDB changes
     listen() {
 
+        console.log("LISTEN");
+
         const { viewOnly, model } = this;
 
         this.listenerDisposable?.dispose();
@@ -91,6 +93,8 @@ class Bindings {
 
     // Stop listening for changes
     unlisten() {
+
+        console.log("UNLISTEN");
 
         if (!this.viewOnly) this.listenerDisposable?.dispose();
         this.doc.off('op', this.onRemoteChange);
@@ -254,6 +258,8 @@ class Bindings {
 
         if (this.suppress) return;
 
+        console.log("ONLOCALCHANGE");
+
         console.log("DELTAS", delta.changes);
 
         const ops = delta.changes.map((change) => this.deltaTransform(change)).flat();
@@ -285,6 +291,8 @@ class Bindings {
 
     // Handles remote operations from ShareDB
     onRemoteChange(ops: Array<any>, source: any) {
+
+        console.log("ONREMOTECHANGE");
 
         if (ops.length === 0) return;
 
