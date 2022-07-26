@@ -27,6 +27,8 @@ class Bindings {
 
     private parent: ShareDBMonaco;
 
+    private listenerDisposable?: monaco.IDisposable;
+
     get model() { return this._model; }
 
     set model(model: monaco.editor.ITextModel) {
@@ -79,7 +81,10 @@ class Bindings {
     // Listen for both monaco editor changes and ShareDB changes
     listen() {
 
-        if (!this.viewOnly) this.model.onDidChangeContent(this.onLocalChange);
+        const { viewOnly, model } = this;
+
+        this.listenerDisposable?.dispose();
+        if (!viewOnly) this.listenerDisposable = model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
 
     }
@@ -87,8 +92,8 @@ class Bindings {
     // Stop listening for changes
     unlisten() {
 
-        if (!this.viewOnly) this.model.onDidChangeContent(() => {});
-        this.doc.on('op', this.onRemoteChange);
+        if (!this.viewOnly) this.listenerDisposable?.dispose();
+        this.doc.off('op', this.onRemoteChange);
 
     }
 

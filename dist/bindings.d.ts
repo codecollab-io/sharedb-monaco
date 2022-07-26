@@ -15,6 +15,7 @@ declare class Bindings {
     private lastValue;
     private viewOnly;
     private parent;
+    private listenerDisposable?;
     get model(): monaco.editor.ITextModel;
     set model(model: monaco.editor.ITextModel);
     constructor(options: BindingsOptions);

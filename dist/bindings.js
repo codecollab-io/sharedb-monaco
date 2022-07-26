@@ -48,15 +48,19 @@ var Bindings = /** @class */ (function () {
     };
     // Listen for both monaco editor changes and ShareDB changes
     Bindings.prototype.listen = function () {
-        if (!this.viewOnly)
-            this.model.onDidChangeContent(this.onLocalChange);
+        var _a;
+        var _b = this, viewOnly = _b.viewOnly, model = _b.model;
+        (_a = this.listenerDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
+        if (!viewOnly)
+            this.listenerDisposable = model.onDidChangeContent(this.onLocalChange);
         this.doc.on('op', this.onRemoteChange);
     };
     // Stop listening for changes
     Bindings.prototype.unlisten = function () {
+        var _a;
         if (!this.viewOnly)
-            this.model.onDidChangeContent(function () { });
-        this.doc.on('op', this.onRemoteChange);
+            (_a = this.listenerDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
+        this.doc.off('op', this.onRemoteChange);
     };
     // Pause connections
     Bindings.prototype.pause = function () {
