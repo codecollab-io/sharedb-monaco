@@ -5,7 +5,6 @@
  * @license MIT
  */
 import type monaco from 'monaco-editor';
-import sharedb from 'sharedb/lib/client';
 import type { BindingsOptions } from './types';
 declare class Bindings {
     private suppress;
@@ -23,7 +22,7 @@ declare class Bindings {
     listen(): void;
     unlisten(): void;
     pause(): void;
-    resume(doc: sharedb.Doc): void;
+    resume(): void;
     deltaTransform(delta: monaco.editor.IModelContentChange): any[];
     getInsertOp(index: number, text: string): {
         [x: string]: string | (string | number)[];

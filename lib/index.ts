@@ -243,17 +243,13 @@ class ShareDBMonaco {
     // Resume doc subscriptions
     private resume() {
 
-        const { connection, namespace, id } = this;
-
-        this._doc = connection.get(namespace, id);
-
         this.doc.subscribe((err) => {
 
             if (err) throw err;
 
             if (this.doc.type === null) throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
 
-            this.binding?.resume(this.doc);
+            this.binding?.resume();
 
         });
 

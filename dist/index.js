@@ -210,15 +210,13 @@ var ShareDBMonaco = /** @class */ (function () {
     // Resume doc subscriptions
     ShareDBMonaco.prototype.resume = function () {
         var _this = this;
-        var _a = this, connection = _a.connection, namespace = _a.namespace, id = _a.id;
-        this._doc = connection.get(namespace, id);
         this.doc.subscribe(function (err) {
             var _a;
             if (err)
                 throw err;
             if (_this.doc.type === null)
                 throw new Error('ShareDB document uninitialized. Check if the id is correct and you have initialised the document on the server.');
-            (_a = _this.binding) === null || _a === void 0 ? void 0 : _a.resume(_this.doc);
+            (_a = _this.binding) === null || _a === void 0 ? void 0 : _a.resume();
         });
     };
     /**

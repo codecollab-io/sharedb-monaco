@@ -67,8 +67,7 @@ var Bindings = /** @class */ (function () {
         this.unlisten();
     };
     // Resume connections
-    Bindings.prototype.resume = function (doc) {
-        this.doc = doc;
+    Bindings.prototype.resume = function () {
         this.listen();
         this.setInitialValue();
     };

@@ -105,9 +105,8 @@ class Bindings {
     }
 
     // Resume connections
-    resume(doc: sharedb.Doc) {
+    resume() {
 
-        this.doc = doc;
         this.listen();
 
         this.setInitialValue();
