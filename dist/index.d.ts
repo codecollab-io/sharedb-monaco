@@ -8,7 +8,7 @@
  */
 import WebSocket from 'reconnecting-websocket';
 import sharedb from 'sharedb/lib/client';
-import type monaco from 'monaco-editor';
+import type Monaco from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 declare class ShareDBMonaco {
     WS?: WebSocket;
@@ -25,7 +25,7 @@ declare class ShareDBMonaco {
     get viewOnly(): boolean;
     get namespace(): string;
     get id(): string;
-    get editors(): Map<string, monaco.editor.ICodeEditor>;
+    get editors(): Map<string, Monaco.editor.ICodeEditor>;
     get doc(): sharedb.Doc<any>;
     get sharePath(): string;
     /**
@@ -36,7 +36,7 @@ declare class ShareDBMonaco {
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
      * @param {string} opts.loadingText (Optional) - Text to show while ShareDB is loading
-     * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
+     * @param {Monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
@@ -52,9 +52,9 @@ declare class ShareDBMonaco {
      * Sets the Uri for the internal monaco model.
      * This will override any previously set language using setLangId
      * and will infer the new language from the uri.
-     * @param {monaco.Uri} uri - Set the Uri for the internal monaco model.
+     * @param {Monaco.Uri} uri - Set the Uri for the internal monaco model.
      */
-    setModelUri(uri: monaco.Uri): monaco.editor.ITextModel;
+    setModelUri(uri: Monaco.Uri): Monaco.editor.ITextModel;
     /**
      * Sets the language of the internal monaco model
      * @param {string} langId - The Language ID
@@ -64,13 +64,13 @@ declare class ShareDBMonaco {
      * Attach editor to ShareDB Monaco model
      * If multiple language options are set, sharedb-monaco will prioritise them
      * in the order of: opts.langId > opts.model > opts.uri
-     * @param {monaco.editor.ICodeEditor} codeEditor - The editor instance
+     * @param {Monaco.editor.ICodeEditor} codeEditor - The editor instance
      * @param {AttachOptions} opts (Optional) - Language options
-     * @param {monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
+     * @param {Monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
      * @param {string} opts.langId (Optional) - Set language mode with this id
-     * @param {monaco.Uri} opts.uri (Optional) - Override existing model Uri
+     * @param {Monaco.Uri} opts.uri (Optional) - Override existing model Uri
      */
-    add(codeEditor: monaco.editor.ICodeEditor, opts?: AttachOptions): monaco.editor.ITextModel;
+    add(codeEditor: Monaco.editor.ICodeEditor, opts?: AttachOptions): Monaco.editor.ITextModel;
     private pause;
     private resume;
     /**

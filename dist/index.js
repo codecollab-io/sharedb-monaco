@@ -23,7 +23,7 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {string} opts.sharePath - Path on ShareDB document to apply operations to.
      * @param {boolean} opts.viewOnly - Set model to view only mode
      * @param {string} opts.loadingText (Optional) - Text to show while ShareDB is loading
-     * @param {monaco} opts.monaco (Optional) - Monaco objects for language inference
+     * @param {Monaco} opts.monaco (Optional) - Monaco objects for language inference
      * @param {Uri} opts.uri (Optional) - Uri for model creation
      * @param {string} opts.wsurl (Optional) - URL for ShareDB Server API
      * @param {sharedb.Connection} opts.connection (Optional) - ShareDB Connection instance
@@ -119,21 +119,24 @@ var ShareDBMonaco = /** @class */ (function () {
      * Sets the Uri for the internal monaco model.
      * This will override any previously set language using setLangId
      * and will infer the new language from the uri.
-     * @param {monaco.Uri} uri - Set the Uri for the internal monaco model.
+     * @param {Monaco.Uri} uri - Set the Uri for the internal monaco model.
      */
     ShareDBMonaco.prototype.setModelUri = function (uri) {
-        var _a = this, model = _a.model, m = _a.monaco;
-        if (!m)
+        var _a;
+        var _b = this, model = _b.model, monaco = _b.monaco;
+        if (!monaco)
             throw new Error("This method is only available if 'monaco' was set on instantiation.");
         // Only set new model language, do not replace model if uri is the same
-        if (uri.path === this.model.uri.path) {
-            var tempModel = m.editor.createModel('', '', m.Uri.file("".concat(Date.now(), "/").concat(uri.path)));
+        if (uri.path === model.uri.path) {
+            var tempModel = monaco.editor.createModel('', '', monaco.Uri.file("".concat(Date.now(), "/").concat(uri.path)));
             var lang = tempModel.getLanguageId();
-            m.editor.setModelLanguage(this.model, lang);
+            monaco.editor.setModelLanguage(model, lang);
             tempModel.dispose();
-            return this.model;
+            return model;
         }
-        var newModel = m.editor.createModel(model.getValue(), undefined, uri);
+        // Dispose any existing models with this uri that may be lingering
+        (_a = monaco.editor.getModel(uri)) === null || _a === void 0 ? void 0 : _a.dispose();
+        var newModel = monaco.editor.createModel(model.getValue(), undefined, uri);
         model.dispose();
         var editors = Array.from(this.editors.values());
         var cursors = editors.map(function (e) { return e.getPosition(); });
@@ -149,40 +152,42 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {string} langId - The Language ID
      */
     ShareDBMonaco.prototype.setLangId = function (langId) {
-        if (!this.monaco)
+        var _a = this, monaco = _a.monaco, model = _a.model;
+        if (!monaco)
             throw new Error("This method is only available if 'monaco' was set on instantiation.");
-        this.monaco.editor.setModelLanguage(this.model, langId);
+        monaco.editor.setModelLanguage(model, langId);
     };
     /**
      * Attach editor to ShareDB Monaco model
      * If multiple language options are set, sharedb-monaco will prioritise them
      * in the order of: opts.langId > opts.model > opts.uri
-     * @param {monaco.editor.ICodeEditor} codeEditor - The editor instance
+     * @param {Monaco.editor.ICodeEditor} codeEditor - The editor instance
      * @param {AttachOptions} opts (Optional) - Language options
-     * @param {monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
+     * @param {Monaco.editor.ITextModel} opts.model (Optional) - Infer language mode from this model
      * @param {string} opts.langId (Optional) - Set language mode with this id
-     * @param {monaco.Uri} opts.uri (Optional) - Override existing model Uri
+     * @param {Monaco.Uri} opts.uri (Optional) - Override existing model Uri
      */
     ShareDBMonaco.prototype.add = function (codeEditor, opts) {
-        if (this.connection.state === 'disconnected')
+        var _a = this, connection = _a.connection, monaco = _a.monaco, editors = _a.editors;
+        if (connection.state === 'disconnected')
             throw new Error('add() called after close(). You cannot attach an editor once you have closed the ShareDB Connection.');
-        if (opts && !this.monaco)
+        if (opts && !monaco)
             console.warn("Supplying options to this function without passing 'monaco' in instantiation will have no effect.");
-        if (this.editors.size === 0)
+        if (editors.size === 0)
             this.resume();
         // Set model language
-        if (opts && this.monaco) {
+        if (opts && monaco) {
             var langId = opts.langId, model = opts.model, uri = opts.uri;
             if (uri && uri.path !== this.model.uri.path)
                 this.setModelUri(uri);
             if (langId)
-                this.monaco.editor.setModelLanguage(this.model, langId);
+                monaco.editor.setModelLanguage(this.model, langId);
             else if (model)
-                this.monaco.editor.setModelLanguage(this.model, model.getLanguageId());
+                monaco.editor.setModelLanguage(this.model, model.getLanguageId());
         }
         codeEditor.setModel(this.model);
-        if (!this.editors.has(codeEditor.getId()))
-            this.editors.set(codeEditor.getId(), codeEditor);
+        if (!editors.has(codeEditor.getId()))
+            editors.set(codeEditor.getId(), codeEditor);
         return this.model;
     };
     // Pause doc subscriptions to save bandwidth
@@ -210,13 +215,14 @@ var ShareDBMonaco = /** @class */ (function () {
      * @param {string} id - Editor ID from ICodeEditor.getId()
      */
     ShareDBMonaco.prototype.remove = function (id) {
-        if (this.editors.has(id)) {
+        var editors = this.editors;
+        if (editors.has(id)) {
             // Forced ! here cause typescript can't recognise I used the has() operator previously.
             // https://github.com/microsoft/TypeScript/issues/9619
-            this.editors.get(id).setModel(null);
-            this.editors.delete(id);
+            editors.get(id).setModel(null);
+            editors.delete(id);
         }
-        if (this.editors.size === 0)
+        if (editors.size === 0)
             this.pause();
     };
     /**
@@ -224,15 +230,15 @@ var ShareDBMonaco = /** @class */ (function () {
      * Will also close the connection if connection was created by sharedb-monaco
      */
     ShareDBMonaco.prototype.close = function () {
-        var _a;
+        var _a = this, model = _a.model, editors = _a.editors, WS = _a.WS, connection = _a.connection;
         this.pause();
-        this.model.dispose();
-        this.editors.forEach(function (e) { return e.setModel(null); });
-        this.editors.clear();
+        model.dispose();
+        editors.forEach(function (e) { return e.setModel(null); });
+        editors.clear();
         // If connection was opened by this instance, close it.
-        if (this.WS) {
-            (_a = this.WS) === null || _a === void 0 ? void 0 : _a.close();
-            this.connection.close();
+        if (WS) {
+            WS === null || WS === void 0 ? void 0 : WS.close();
+            connection.close();
         }
     };
     return ShareDBMonaco;
