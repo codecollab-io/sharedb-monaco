@@ -85,6 +85,7 @@ class Bindings {
 
         this.listenerDisposable?.dispose();
         if (!viewOnly) this.listenerDisposable = model.onDidChangeContent(this.onLocalChange);
+        this.doc.removeAllListeners('op');
         this.doc.on('op', this.onRemoteChange);
 
     }
@@ -93,7 +94,7 @@ class Bindings {
     unlisten() {
 
         if (!this.viewOnly) this.listenerDisposable?.dispose();
-        this.doc.off('op', this.onRemoteChange);
+        this.doc.removeAllListeners('op');
 
     }
 

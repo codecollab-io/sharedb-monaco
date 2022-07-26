@@ -53,6 +53,7 @@ var Bindings = /** @class */ (function () {
         (_a = this.listenerDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
         if (!viewOnly)
             this.listenerDisposable = model.onDidChangeContent(this.onLocalChange);
+        this.doc.removeAllListeners('op');
         this.doc.on('op', this.onRemoteChange);
     };
     // Stop listening for changes
@@ -60,7 +61,7 @@ var Bindings = /** @class */ (function () {
         var _a;
         if (!this.viewOnly)
             (_a = this.listenerDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
-        this.doc.off('op', this.onRemoteChange);
+        this.doc.removeAllListeners('op');
     };
     // Pause connections
     Bindings.prototype.pause = function () {
