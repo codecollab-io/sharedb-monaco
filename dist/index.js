@@ -67,21 +67,21 @@ var ShareDBMonaco = /** @class */ (function () {
     function ShareDBMonaco(opts) {
         var _this = this;
         this._editors = new Map();
-        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, viewOnly = opts.viewOnly, loadingText = opts.loadingText;
+        var id = opts.id, namespace = opts.namespace, sharePath = opts.sharePath, _a = opts.viewOnly, viewOnly = _a === void 0 ? false : _a, loadingText = opts.loadingText;
+        var connection = opts.connection;
         // Parameter checks
         if (!id)
             throw new Error("'id' is required but not provided");
         if (!namespace)
             throw new Error("'namespace' is required but not provided");
+        if (!connection)
+            throw new Error("'connection' is required but not provided.");
         if (typeof viewOnly !== 'boolean')
-            throw new Error("'viewOnly' is required but not provided");
-        var connection;
-        if ('wsurl' in opts) {
-            this.WS = new reconnecting_websocket_1.default(opts.wsurl);
+            throw new Error("'viewOnly' should be a boolean");
+        if (typeof connection === 'string') {
+            this.WS = new reconnecting_websocket_1.default(connection);
             connection = new client_1.default.Connection(this.WS);
         }
-        else
-            connection = opts.connection;
         // Get ShareDB Doc
         var doc = connection.get(opts.namespace, opts.id);
         this.connection = connection;
@@ -97,7 +97,7 @@ var ShareDBMonaco = /** @class */ (function () {
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
-        this._viewOnly = viewOnly;
+        this._viewOnly = viewOnly || false;
         this._sharePath = sharePath;
         doc.subscribe(function (err) {
             if (err)
@@ -298,16 +298,27 @@ var ShareDBMonaco = /** @class */ (function () {
      * Will also close the connection if connection was created by sharedb-monaco
      */
     ShareDBMonaco.prototype.close = function () {
-        var _a = this, model = _a.model, editors = _a.editors, WS = _a.WS, connection = _a.connection;
-        this.pause();
-        model.dispose();
-        editors.forEach(function (e) { return e.setModel(null); });
-        editors.clear();
-        // If connection was opened by this instance, close it.
-        if (WS) {
-            WS === null || WS === void 0 ? void 0 : WS.close();
-            connection.close();
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, model, editors, WS, connection;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this, model = _a.model, editors = _a.editors, WS = _a.WS, connection = _a.connection;
+                        return [4 /*yield*/, this.pause()];
+                    case 1:
+                        _b.sent();
+                        model.dispose();
+                        editors.forEach(function (e) { return e.setModel(null); });
+                        editors.clear();
+                        // If connection was opened by this instance, close it.
+                        if (WS) {
+                            WS === null || WS === void 0 ? void 0 : WS.close();
+                            connection.close();
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     return ShareDBMonaco;
 }());

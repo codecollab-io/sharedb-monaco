@@ -65,21 +65,21 @@ class ShareDBMonaco {
      */
     constructor(opts: ShareDBMonacoOptions) {
 
-        const { id, namespace, sharePath, viewOnly, loadingText } = opts;
+        const { id, namespace, sharePath, viewOnly = false, loadingText } = opts;
+        let { connection } = opts;
 
         // Parameter checks
         if (!id) throw new Error("'id' is required but not provided");
         if (!namespace) throw new Error("'namespace' is required but not provided");
-        if (typeof viewOnly !== 'boolean') throw new Error("'viewOnly' is required but not provided");
+        if (!connection) throw new Error("'connection' is required but not provided.");
+        if (typeof viewOnly !== 'boolean') throw new Error("'viewOnly' should be a boolean");
 
-        let connection: sharedb.Connection;
+        if (typeof connection === 'string') {
 
-        if ('wsurl' in opts) {
-
-            this.WS = new WebSocket(opts.wsurl);
+            this.WS = new WebSocket(connection);
             connection = new sharedb.Connection(this.WS as Socket);
 
-        } else connection = opts.connection;
+        }
 
         // Get ShareDB Doc
         const doc = connection.get(opts.namespace, opts.id);
@@ -98,7 +98,7 @@ class ShareDBMonaco {
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
-        this._viewOnly = viewOnly;
+        this._viewOnly = viewOnly || false;
         this._sharePath = sharePath;
 
         doc.subscribe((err) => {
@@ -281,11 +281,11 @@ class ShareDBMonaco {
      * Close model and clean up
      * Will also close the connection if connection was created by sharedb-monaco
      */
-    close() {
+    async close() {
 
         const { model, editors, WS, connection } = this;
 
-        this.pause();
+        await this.pause();
         model.dispose();
         editors.forEach((e) => e.setModel(null));
         editors.clear();

@@ -7,21 +7,14 @@ import type * as monaco from 'monaco-editor';
 import sharedb from 'sharedb/lib/client';
 import ShareDBMonaco from '..';
 
-export type ShareDBMonacoOptions = ({
+export type ShareDBMonacoOptions = {
     id: string;
     namespace: string;
     sharePath: string;
-    viewOnly: boolean;
+    connection?: sharedb.Connection | string;
+    viewOnly?: boolean;
     loadingText?: string;
-    wsurl: string;
-} | {
-    id: string;
-    namespace: string;
-    sharePath: string;
-    loadingText?: string;
-    viewOnly: boolean;
-    connection: sharedb.Connection;
-}) & ({
+} & ({
     monaco: typeof monaco;
     uri: monaco.Uri;
 } | {

@@ -89,6 +89,6 @@ declare class ShareDBMonaco {
      * Close model and clean up
      * Will also close the connection if connection was created by sharedb-monaco
      */
-    close(): void;
+    close(): Promise<void>;
 }
 export default ShareDBMonaco;
