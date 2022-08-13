@@ -33,7 +33,6 @@ let editor = monaco.editor.create(document.getElementById("editor"), {
 let binding = new ShareDBMonaco(options);
 let model = binding.add(editor, attachOptions);
 ```
-<br />
 
 ### `new ShareDBMonaco(options)`
 
@@ -41,7 +40,7 @@ let model = binding.add(editor, attachOptions);
   * `id` **\<string>** ID of the ShareDB document
   * `namespace` **\<string>**  namespace of document within ShareDB, to be equal to that on the server
   * `sharePath` **\<string>** Path on ShareDB JSON object to apply operations to. For example, if your ShareDB document is structured as ```{ foo: "", bar: "" }```, set ```sharePath: "foo"``` for ShareDBMonaco to apply operations to ```foo```
-  * `connection` **\<shareDb.Connection>** | **\<string>** If a string is passed, it'll be passed to the constructor of `new Websocket(connection)`, otherwise it'll reuse the ShareDB Connection passed.
+  * `connection` **\<shareDb.Connection>** | **\<string>** If a string is passed, it'll be passed to the constructor of `new WebSocket(connection)`, otherwise it'll reuse the ShareDB Connection passed.
   * `viewOnly` **\<boolean>** Should this document ignore local writes. Default: `false`
   * `loadingText` **\<string>** Value to initialise monaco model with while loading the ShareDB document. Default: `"Loading..."`
 
@@ -54,10 +53,7 @@ let model = binding.add(editor, attachOptions);
 
 Instantiating `ShareDBMonaco` without `monaco` and `uri` set and instead setting `model` will not allow you to use the `setLangId()` and `setModelUri()` methods. Language inference for the `add()` will also be disabled.
 
-<br />
-
 ---
-<br />
 
 ### `binding.add(editor[, attachOptions])`
 
@@ -79,19 +75,13 @@ If `model`, `langId` and `uri` are set, first uri will be applied to the existin
 
 NOTE: `attachOptions.model` does NOT replace the `editor`'s model. It is only used for language inference and nothing more.
 
-<br />
-
 ---
-<br />
 
 ### `binding.setViewOnly(viewOnly)`
 Toggles the view-only state of the bindings.
 * `viewOnly` **\<boolean>** Should this document ignore local writes.
 
-<br />
-
 ---
-<br />
 
 ### `binding.setModelUri(uri)`
 Updates the Uri of the internal model.
@@ -103,48 +93,32 @@ NOTE: Updating the Uri actually creates a new model as monaco does not have any 
 
 If `uri` matches the uri of the existing model, the model will not be recreated however `uri` will be used for language inference and the language mode will be updated.
 
-<br />
-
 ---
-<br />
 
 ### `binding.setLangId(langId)`
 Sets the language of the internal monaco model
 * `langId` **\<string>** The Language Id
 
-<br />
-
 ---
-<br />
 
 ### `binding.remove(id)`
 Removes and detaches an `ICodeEditor` instance from this bindings with the specified id.
 * `id` **\<string>** Id of the `ICodeEditor` instance from `ICodeEditor.getId()`
 * Returns: **\<Promise>** If all editors have been removed, all document subscriptions will be removed. The **\<Promise>** will be fulfilled when all subscrptions have been closed.
 
-<br />
-
 ---
-<br />
 
 ### `binding.close()`
 Closes all document subscriptions, detaches all `ICodeEditor` instances from the ShareDB model, destroys the model. If the `ShareDB.Connection` was created by this instance, it will be destroyed too.
 * Returns: **\<Promise>** Fulfilled when all subscriptions have been closed.
 
-<br />
-
 ---
-<br />
 
 ## Plugins
 If you would like to use this package with multi-cursor support powered by ShareDB's Presence API, you can check out [sharedb-monaco-cursor](https://github.com/codecollab-io/sharedb-monaco-cursors).
 
-<br />
-
 ## Usage with Next.JS
 Any component that uses this module needs to be dynamically loaded with `{ ssr: false }` set. This is due to an issue with the monaco editor requiring access to the `navigator` object that doesn't exist when the module is loaded on the server.
-
-<br />
 
 ## License
 [MIT](https://github.com/codecollab-io/sharedb-monaco/blob/master/LICENSE)
