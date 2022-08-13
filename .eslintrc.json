@@ -1,0 +1,46 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "settings": {
+        "import/resolver": {
+            "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
+        }
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "no-promise-executor-return": "off",
+        "no-console": ["error", { "allow": ["warn"] }],
+        "consistent-return": "off",
+        "no-underscore-dangle": "off",
+        "padded-blocks": [
+            "error",
+            "always",
+            { "allowSingleLineBlocks": true }
+        ],
+        "indent": [
+            "error",
+            4
+        ],
+        "object-curly-newline": "off",
+        "import/extensions": [
+            "error",
+            {
+                "tsx": "never",
+                "ts": "never",
+                "json": "always"
+            }
+        ]
+    }
+}

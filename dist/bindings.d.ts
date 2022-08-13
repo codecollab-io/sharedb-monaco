@@ -4,26 +4,41 @@
  * @author Carl Voller <carlvoller8@gmail.com>
  * @license MIT
  */
-import { editor } from "monaco-editor";
-import { BindingsOptions } from "./types";
+import type monaco from 'monaco-editor';
+import type { BindingsOptions } from './types';
 declare class Bindings {
     private suppress;
-    private editor;
     private path;
     private doc;
-    private model;
+    private _model;
     private lastValue;
     private viewOnly;
+    private parent;
+    private listenerDisposable?;
+    get model(): monaco.editor.ITextModel;
+    set model(model: monaco.editor.ITextModel);
     constructor(options: BindingsOptions);
     setInitialValue(): void;
     listen(): void;
     unlisten(): void;
-    deltaTransform(delta: editor.IModelContentChange): any[];
-    getInsertOp(index: number, text: string): any[];
-    getDeleteOp(index: number, length: number): any[];
-    getReplaceOp(index: number, length: number, text: string): any[];
+    pause(): void;
+    resume(): void;
+    deltaTransform(delta: monaco.editor.IModelContentChange): any[];
+    getInsertOp(index: number, text: string): {
+        [x: string]: string | (string | number)[];
+        p: (string | number)[];
+    }[];
+    getDeleteOp(index: number, length: number): {
+        [x: string]: string | (string | number)[];
+        p: (string | number)[];
+    }[];
+    getReplaceOp(index: number, length: number, text: string): {
+        [x: string]: string | (string | number)[];
+        p: (string | number)[];
+    }[];
     opTransform(ops: Array<any>): void;
-    onLocalChange(delta: editor.IModelContentChangedEvent): void;
+    setViewOnly(viewOnly: boolean): void;
+    onLocalChange(delta: monaco.editor.IModelContentChangedEvent): void;
     onRemoteChange(ops: Array<any>, source: any): void;
 }
 export default Bindings;

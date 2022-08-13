@@ -1,24 +1,36 @@
 // Type definitions for sharedb-monaco
 // Project: https://github.com/codecollab-io/sharedb-monaco
 // Definitions by: Carl Voller <https://github.com/Portatolova>
-// TypeScript Version: 3.0
+// TypeScript Version: 4.7
 
-import { editor } from "monaco-editor";
-import sharedb from "sharedb/lib/client";
+import type * as monaco from 'monaco-editor';
+import sharedb from 'sharedb/lib/client';
+import ShareDBMonaco from '..';
 
 export type ShareDBMonacoOptions = {
     id: string;
     namespace: string;
-    wsurl: string;
+    sharePath: string;
+    connection?: sharedb.Connection | string;
+    viewOnly?: boolean;
+    loadingText?: string;
+} & ({
+    monaco: typeof monaco;
+    uri: monaco.Uri;
 } | {
-    id: string;
-    namespace: string;
-    connection: sharedb.Connection;
+    model: monaco.editor.ITextModel
+})
+
+export type AttachOptions = {
+    model?: monaco.editor.ITextModel;
+    langId?: string;
+    uri?: monaco.Uri;
 }
 
 export interface BindingsOptions {
-    monaco: editor.ICodeEditor;
+    model: monaco.editor.ITextModel;
     path: string;
     doc: sharedb.Doc;
     viewOnly: boolean;
+    parent: ShareDBMonaco;
 }
