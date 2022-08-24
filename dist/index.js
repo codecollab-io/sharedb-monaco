@@ -88,12 +88,12 @@ var ShareDBMonaco = /** @class */ (function () {
         if ('monaco' in opts) {
             this.monaco = opts.monaco;
             if (opts.uri)
-                this.model = opts.monaco.editor.getModel(opts.uri) || opts.monaco.editor.createModel('', undefined, opts.uri);
+                this._model = opts.monaco.editor.getModel(opts.uri) || opts.monaco.editor.createModel('', undefined, opts.uri);
             else
-                this.model = opts.monaco.editor.createModel(loadingText || 'Loading...');
+                this._model = opts.monaco.editor.createModel(loadingText || 'Loading...');
         }
         else
-            this.model = opts.model;
+            this._model = opts.model;
         this._doc = doc;
         this._namespace = namespace;
         this._id = id;
@@ -142,6 +142,11 @@ var ShareDBMonaco = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(ShareDBMonaco.prototype, "model", {
+        get: function () { return this._model; },
+        enumerable: false,
+        configurable: true
+    });
     /**
      * Toggles the View-Only state of the bindings.
      * When set to true, will not publish any local changes
@@ -180,7 +185,7 @@ var ShareDBMonaco = /** @class */ (function () {
         cursors.forEach(function (pos, i) { return !pos || editors[i].setPosition(pos); });
         if (this.binding)
             this.binding.model = newModel;
-        this.model = newModel;
+        this._model = newModel;
         return newModel;
     };
     /**

@@ -12,10 +12,10 @@ import type Monaco from 'monaco-editor';
 import type { AttachOptions, ShareDBMonacoOptions } from './types';
 declare class ShareDBMonaco {
     WS?: WebSocket;
-    private model;
     private connection;
     private monaco?;
     private binding?;
+    private _model;
     private _viewOnly;
     private _namespace;
     private _id;
@@ -28,6 +28,7 @@ declare class ShareDBMonaco {
     get editors(): Map<string, Monaco.editor.ICodeEditor>;
     get doc(): sharedb.Doc<any>;
     get sharePath(): string;
+    get model(): Monaco.editor.ITextModel;
     /**
      * ShareDBMonaco
      * @param {ShareDBMonacoOptions} opts - Options object

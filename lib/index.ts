@@ -18,13 +18,13 @@ class ShareDBMonaco {
 
     WS?: WebSocket;
 
-    private model: Monaco.editor.ITextModel;
-
     private connection: sharedb.Connection;
 
     private monaco?: typeof Monaco;
 
     private binding?: Bindings;
+
+    private _model: Monaco.editor.ITextModel;
 
     private _viewOnly: boolean;
 
@@ -49,6 +49,8 @@ class ShareDBMonaco {
     get doc() { return this._doc; }
 
     get sharePath() { return this._sharePath; }
+
+    get model() { return this._model; }
 
     /**
      * ShareDBMonaco
@@ -90,10 +92,10 @@ class ShareDBMonaco {
 
             this.monaco = opts.monaco;
 
-            if (opts.uri) this.model = opts.monaco.editor.getModel(opts.uri) || opts.monaco.editor.createModel('', undefined, opts.uri);
-            else this.model = opts.monaco.editor.createModel(loadingText || 'Loading...');
+            if (opts.uri) this._model = opts.monaco.editor.getModel(opts.uri) || opts.monaco.editor.createModel('', undefined, opts.uri);
+            else this._model = opts.monaco.editor.createModel(loadingText || 'Loading...');
 
-        } else this.model = opts.model;
+        } else this._model = opts.model;
 
         this._doc = doc;
         this._namespace = namespace;
@@ -164,7 +166,7 @@ class ShareDBMonaco {
 
         if (this.binding) this.binding.model = newModel;
 
-        this.model = newModel;
+        this._model = newModel;
 
         return newModel;
 
